@@ -3,67 +3,78 @@ import 'package:flutter/material.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-  @override
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('FoodMatch'),
         centerTitle: true,
-        backgroundColor:Theme.of(context).primaryColor, 
-
+        backgroundColor: Theme.of(context).primaryColor,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, 
-            crossAxisAlignment: CrossAxisAlignment.center, 
-            children: [
-              Text(
-                '¡Hola! ¿Qué te apetece comer hoy?',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      fontSize: 28,
-                    ),
-                textAlign: TextAlign.center,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '¡Hola! ¿Qué te apetece comer hoy?',
+                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                              fontSize: 28,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 40),
+
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 20,
+                        mainAxisSpacing: 20,
+                        childAspectRatio: 0.9,
+                        children: [
+                          _buildCategoryCard(
+                            context,
+                            title: 'Entrantes',
+                            icon: Icons.soup_kitchen_outlined,
+                            backendCategory: 'ENTRANTES',
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            title: 'Snacks',
+                            icon: Icons.tapas_outlined,
+                            backendCategory: 'SNACKS',
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            title: 'Platos Completos',
+                            icon: Icons.restaurant_outlined,
+                            backendCategory: 'PLATOS_COMPLETOS',
+                          ),
+                          _buildCategoryCard(
+                            context,
+                            title: 'Postres',
+                            icon: Icons.cake_outlined,
+                            backendCategory: 'POSTRES',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              const SizedBox(height: 40), 
-              
-              GridView.count(
-                shrinkWrap: true, 
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 2, 
-                crossAxisSpacing: 20,
-                mainAxisSpacing: 20,
-                childAspectRatio: 0.9, 
-                children: [
-                  _buildCategoryCard(
-                    context,
-                    title: 'Entrantes',
-                    icon: Icons.soup_kitchen_outlined,
-                    backendCategory: 'ENTRANTES',
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    title: 'Snacks',
-                    icon: Icons.eco_outlined,
-                    backendCategory: 'SNACKS',
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    title: 'Platos Completos',
-                    icon: Icons.restaurant_outlined,
-                    backendCategory: 'PLATOS_COMPLETOS',
-                  ),
-                  _buildCategoryCard(
-                    context,
-                    title: 'Postres',
-                    icon: Icons.cake_outlined,
-                    backendCategory: 'POSTRES',
-                  ),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -81,9 +92,10 @@ class HomeScreen extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          // TO-DO: Navegar a la pantalla de la ruleta/swipe pasando 'backendCategory' como argumento
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Buscando categoría: $backendCategory...')),
+          Navigator.pushNamed(
+            context,
+            '/recipes', 
+            arguments: backendCategory, 
           );
         },
         child: Ink(

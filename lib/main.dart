@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'core/app_routes.dart';
@@ -7,7 +8,10 @@ import 'viewmodels/theme_viewmodel.dart';
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => ThemeViewModel())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => RecipeViewModel()),
+        ],
       child: const FoodMatchApp(),
     ),
   );

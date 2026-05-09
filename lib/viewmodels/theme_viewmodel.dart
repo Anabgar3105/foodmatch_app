@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ThemeViewModel extends ChangeNotifier {
-  // Por defecto respetar la configuración del móvil del usuario
   ThemeMode _themeMode = ThemeMode.system;
 
   ThemeMode get themeMode => _themeMode;

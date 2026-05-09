@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/viewmodels/favorites_viewmodel.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../viewmodels/recipe_viewmodel.dart';
@@ -196,22 +197,19 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                           final success = await viewModel.toggleFavorite(
                             recipe.id,
                           );
+
                           if (!context.mounted) return;
 
-                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-
                           if (success) {
-                            // Solo mostramos mensaje de éxito si se añade
+                            // --- NUEVO: Notificamos al ViewModel de Favoritos que debe refrescarse ---
+                            context.read<FavoritesViewModel>().fetchFavorites();
+
                             if (!isFav) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     '¡${recipe.title} guardada!',
                                   ),
-                                  duration: const Duration(seconds: 1),
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).primaryColor,
                                 ),
                               );
                             }

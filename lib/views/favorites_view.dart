@@ -25,7 +25,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Favoritas'),
-        centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
       ),
       body: Consumer<FavoritesViewModel>(
@@ -89,6 +88,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
+  // --- Diseño de la tarjeta horizontal para la lista ---
   Widget _buildFavoriteCard(BuildContext context, RecipeCardDto recipe, FavoritesViewModel viewModel) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -97,7 +97,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // TO-DO: Navegar a la pantalla de detalle de la receta
+          // TODO: Navegar a la pantalla de detalle de la receta
         },
         child: Row(
           children: [
@@ -105,10 +105,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ClipRRect(
               borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
               child: Image.network(
-                recipe.image ?? 'https://via.placeholder.com/150?text=No+Image',
+                recipe.image ?? 'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: 120,
+                    height: 120,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.broken_image_outlined, size: 40, color: Colors.grey),
+                  );
+                },
               ),
             ),
             // Información a la derecha
@@ -128,6 +136,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       '${recipe.preparationTime} min | ${recipe.category}',
                       style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -138,7 +148,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               label: 'Eliminar receta de favoritos',
               button: true,
               child: IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                icon: const Icon(Icons.delete, color: Colors.redAccent),
                 onPressed: () {
                   _showDeleteDialog(context, recipe, viewModel);
                 },
@@ -150,26 +160,48 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-
   // Diálogo de confirmación para no borrar por accidente
-  void _showDeleteDialog(BuildContext context, RecipeCardDto recipe, FavoritesViewModel viewModel) {
+ void _showDeleteDialog(BuildContext context, RecipeCardDto recipe, FavoritesViewModel viewModel) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('¿Eliminar favorito?'),
-        content: Text('¿Seguro que quieres quitar "${recipe.title}" de tu lista?'),
+        title: const Text(
+          '¿Eliminar favorito?',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          '¿Seguro que quieres quitar "${recipe.title}" de tu lista de favoritos?',
+          textAlign: TextAlign.center,
+        ),
+        actionsAlignment: MainAxisAlignment.spaceEvenly,
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(ctx);
-              viewModel.removeFavorite(recipe.id);
-            },
-            child: const Text('Eliminar'),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              const SizedBox(width: 8), 
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    viewModel.removeFavorite(recipe.id);
+                  },
+                  child: const Text('Eliminar'),
+                ),
+              ),
+            ],
           ),
         ],
       ),

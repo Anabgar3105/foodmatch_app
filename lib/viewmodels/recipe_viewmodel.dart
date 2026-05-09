@@ -35,6 +35,12 @@ class RecipeViewModel extends ChangeNotifier {
         category: category,
         maxTime: maxTime,
       );
+
+      final userFavorites = await _favoriteRepository.getFavorites();
+      
+      _favoritedIds.clear();
+      _favoritedIds.addAll(userFavorites.map((recipe) => recipe.id));
+
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _recipes = [];
@@ -44,22 +50,9 @@ class RecipeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveFavorite(int recipeId) async {
-    try {
-      await _favoriteRepository.addFavorite(recipeId);
-      debugPrint('Receta $recipeId guardada en favoritos correctamente');
-    } catch (e) {
-      _errorMessage =
-          'Error al guardar la receta en favoritos: ${e.toString().replaceAll('Exception: ', '')}';
-      debugPrint('Error al guardar favorito: $e');
-    }
-  }
-
-  // Cambiamos a Future<bool> para avisar a la vista del resultado
   Future<bool> toggleFavorite(int recipeId) async {
     final wasFavorite = _favoritedIds.contains(recipeId);
 
-    // 1. ACTUALIZACIÓN OPTIMISTA
     if (wasFavorite) {
       _favoritedIds.remove(recipeId);
     } else {
@@ -67,7 +60,6 @@ class RecipeViewModel extends ChangeNotifier {
     }
     notifyListeners(); 
 
-    // 2. Llamada al backend
     try {
       if (!wasFavorite) {
         await _favoriteRepository.addFavorite(recipeId);
@@ -79,7 +71,6 @@ class RecipeViewModel extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error del backend: $e');
       
-      // 3. REVERTIMOS SI FALLA
       if (wasFavorite) {
         _favoritedIds.add(recipeId);
       } else {
@@ -89,5 +80,14 @@ class RecipeViewModel extends ChangeNotifier {
       
       return false; 
     }
+  }
+
+  void updateFavoriteLocal(int recipeId, bool isFavorite) {
+    if (isFavorite) {
+      _favoritedIds.add(recipeId);
+    } else {
+      _favoritedIds.remove(recipeId);
+    }
+    notifyListeners();
   }
 }

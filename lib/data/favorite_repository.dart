@@ -10,7 +10,7 @@ class FavoriteRepository {
 
   Future<void> addFavorite(int recipeId) async {
     final url = Uri.http(authority, '$basePath/$recipeId');
-    await api.postJsonObject(url, {}); 
+    await api.postVoid(url); 
   }
 
   Future<List<RecipeCardDto>> getFavorites() async {
@@ -19,7 +19,6 @@ class FavoriteRepository {
     return jsonList.map((json) => RecipeCardDto.fromJson(json as Map<String, dynamic>)).toList();
   }
 
-  // DELETE: Elimina una receta de favoritos
   Future<void> removeFavorite(int recipeId) async {
     final url = Uri.http(authority, '$basePath/$recipeId');
     await api.delete(url); 

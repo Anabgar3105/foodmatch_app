@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../viewmodels/recipe_viewmodel.dart';
-import '../models/recipe.dart'; 
+import '../models/recipe.dart';
 
 class RecipeSwipeScreen extends StatefulWidget {
   const RecipeSwipeScreen({super.key});
@@ -13,7 +13,7 @@ class RecipeSwipeScreen extends StatefulWidget {
 
 class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
   bool _isInit = true;
-  // Controlador para poder deslizar las tarjetas con los botones 
+  // Controlador para poder deslizar las tarjetas con los botones
   final CardSwiperController _swiperController = CardSwiperController();
 
   @override
@@ -21,8 +21,9 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     super.didChangeDependencies();
     if (_isInit) {
       final category = ModalRoute.of(context)!.settings.arguments as String;
-      Future.microtask(() =>
-          context.read<RecipeViewModel>().fetchRecipes(category: category));
+      Future.microtask(
+        () => context.read<RecipeViewModel>().fetchRecipes(category: category),
+      );
       _isInit = false;
     }
   }
@@ -57,7 +58,8 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                   Text('Ups! ${viewModel.errorMessage}'),
                   ElevatedButton(
                     onPressed: () {
-                      final category = ModalRoute.of(context)!.settings.arguments as String;
+                      final category =
+                          ModalRoute.of(context)!.settings.arguments as String;
                       viewModel.fetchRecipes(category: category);
                     },
                     child: const Text('Reintentar'),
@@ -78,17 +80,20 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
               Expanded(
                 child: CardSwiper(
                   controller: _swiperController,
-                  cardsCount: viewModel.recipes.length, 
+                  cardsCount: viewModel.recipes.length,
                   onSwipe: _onSwipe,
                   onEnd: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('¡Has visto todas las recetas!')),
+                      const SnackBar(
+                        content: Text('¡Has visto todas las recetas!'),
+                      ),
                     );
                   },
                   padding: const EdgeInsets.all(24.0),
-                  cardBuilder: (context, index, percentThresholdX, percentThresholdY) {
-                    return _buildRecipeCard(viewModel.recipes[index]);
-                  },
+                  cardBuilder:
+                      (context, index, percentThresholdX, percentThresholdY) {
+                        return _buildRecipeCard(viewModel.recipes[index]);
+                      },
                 ),
               ),
               Padding(
@@ -97,14 +102,14 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildActionButton(
-                      Icons.close, 
-                      Colors.red, 
+                      Icons.close,
+                      Colors.red,
                       'Descartar',
                       () => _swiperController.swipe(CardSwiperDirection.left),
                     ),
                     _buildActionButton(
-                      Icons.favorite, 
-                      Colors.green, 
+                      Icons.favorite,
+                      Colors.green,
                       'Me gusta',
                       () => _swiperController.swipe(CardSwiperDirection.right),
                     ),
@@ -127,12 +132,12 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     debugPrint('Deslizado ${direction.name}');
     if (direction == CardSwiperDirection.right) {
       // TO-DO: Llamar al backend para hacer POST en /api/favorites/{id}
-      debugPrint('¡Es un Match!'); 
+      debugPrint('¡Es un Match!');
     }
-    return true; 
+    return true;
   }
 
-  // Diseño de la tarjeta individual 
+  // Diseño de la tarjeta individual
   Widget _buildRecipeCard(RecipeCardDto recipe) {
     return Container(
       decoration: BoxDecoration(
@@ -145,7 +150,10 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
           ),
         ],
         image: DecorationImage(
-          image: NetworkImage(recipe.image ?? 'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp'),
+          image: NetworkImage(
+            recipe.image ??
+                'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
+          ),
           fit: BoxFit.cover,
         ),
       ),
@@ -155,20 +163,84 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
           gradient: const LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.transparent, Colors.black87],
-            stops: [0.5, 1.0], 
+            colors: [Colors.black45, Colors.transparent, Colors.black87],
+            stops: [0.0, 0.4, 1.0],
           ),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+          // mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Consumer<RecipeViewModel>(
+                  builder: (context, viewModel, child) {
+                    final isFav = viewModel.isFavorite(recipe.id);
+
+                    return Semantics(
+                      label: isFav
+                          ? 'Quitar de favoritos'
+                          : 'Guardar en favoritos',
+                      button: true,
+                      child: IconButton(
+                        icon: Icon(
+                          isFav ? Icons.bookmark : Icons.bookmark_border,
+                          color: isFav
+                              ? Theme.of(context).primaryColor
+                              : Colors.white,
+                          size: 36,
+                        ),
+                        onPressed: () async {
+                          final success = await viewModel.toggleFavorite(
+                            recipe.id,
+                          );
+                          if (!context.mounted) return;
+
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+
+                          if (success) {
+                            // Solo mostramos mensaje de éxito si se añade
+                            if (!isFav) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '¡${recipe.title} guardada!',
+                                  ),
+                                  duration: const Duration(seconds: 1),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).primaryColor,
+                                ),
+                              );
+                            }
+                          } else {
+                            // Mensaje de error si el servidor falla
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Error de conexión. No se pudo actualizar favoritos',
+                                ),
+                                duration: Duration(seconds: 2),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+
+            const Spacer(),
             Text(
               recipe.title,
               style: const TextStyle(
-                color: Colors.white, 
-                fontSize: 28, 
+                color: Colors.white,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 height: 1.2,
               ),
@@ -176,7 +248,11 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.timer_outlined, color: Colors.white70, size: 20),
+                const Icon(
+                  Icons.timer_outlined,
+                  color: Colors.white70,
+                  size: 20,
+                ),
                 const SizedBox(width: 4),
                 Text(
                   '${recipe.preparationTime} min',
@@ -184,14 +260,21 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                 ),
                 const SizedBox(width: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     recipe.category,
-                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -202,20 +285,23 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, Color color, String label, VoidCallback onPressed) {
+  Widget _buildActionButton(
+    IconData icon,
+    Color color,
+    String label,
+    VoidCallback onPressed,
+  ) {
     return Semantics(
       label: label,
       button: true,
       child: FloatingActionButton(
-        heroTag: null, 
-        onPressed: onPressed, 
+        heroTag: null,
+        onPressed: onPressed,
         backgroundColor: Theme.of(context).cardColor,
         splashColor: color.withOpacity(0.2),
         hoverColor: color.withOpacity(0.2),
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         child: Icon(icon, color: color, size: 30),
       ),
     );

@@ -42,7 +42,7 @@ class ApiClient {
       return decoded;
     } on TimeoutException {
       throw Exception(
-        'La conexión está tardando más de lo esperado y no hemos podido completar la solicitud. Por favor, inténtalo de nuevo más tarde.',
+        'La conexión está tardando más de lo esperado y no se ha podido completar la solicitud. Por favor, inténtalo de nuevo más tarde.',
       );
     } catch (e) {
       throw Exception('Error inesperado: $e');
@@ -69,6 +69,29 @@ class ApiClient {
       }
 
       return decoded;
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
+
+  // Método genérico para hacer DELETE
+  Future<void> delete(Uri url) async {
+    try {
+      final res = await _client
+          .delete(url, headers: {'Accept': 'application/json'})
+          .timeout(const Duration(seconds: 20));
+
+      // 200 (OK) y 204 (No Content) son respuestas válidas para un DELETE
+      if (res.statusCode != 200 && res.statusCode != 204) {
+        String errorMsg = 'Error HTTP ${res.statusCode}';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
+      }
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {

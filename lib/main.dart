@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'core/app_routes.dart';
 import 'viewmodels/theme_viewmodel.dart';
+import 'viewmodels/favorites_viewmodel.dart';
 
 void main() {
   runApp(
@@ -11,6 +12,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
+        ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ],
       child: const FoodMatchApp(),
     ),

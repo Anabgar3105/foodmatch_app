@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import '../viewmodels/recipe_viewmodel.dart';
 import '../models/recipe.dart';
+import 'recipe_detail_view.dart';
 
 class RecipeSwipeScreen extends StatefulWidget {
   const RecipeSwipeScreen({super.key});
@@ -124,16 +125,30 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     );
   }
 
-  // Lógica al deslizar
-  bool _onSwipe(
-    int previousIndex,
-    int? currentIndex,
-    CardSwiperDirection direction,
-  ) {
-    debugPrint('Deslizado ${direction.name}');
+ bool _onSwipe(
+      int previousIndex, int? currentIndex, CardSwiperDirection direction) {
+    
+    final viewModel = context.read<RecipeViewModel>();
+    final recipe = viewModel.recipes[previousIndex];
+
     if (direction == CardSwiperDirection.right) {
-      // TO-DO: Llamar al backend para hacer POST en /api/favorites/{id}
-      debugPrint('¡Es un Match!');
+      debugPrint('Deslizado right');
+      
+      // viewModel.toggleFavorite(recipe.id).then((success) {
+      //   if (success && context.mounted) {
+      //     context.read<FavoritesViewModel>().fetchFavorites(); 
+      //   }
+      // });
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+        ),
+      );
+
+    } else if (direction == CardSwiperDirection.left) {
+      debugPrint('Deslizado left');
     }
     return true;
   }
@@ -201,7 +216,6 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                           if (!context.mounted) return;
 
                           if (success) {
-                            // --- NUEVO: Notificamos al ViewModel de Favoritos que debe refrescarse ---
                             context.read<FavoritesViewModel>().fetchFavorites();
 
                             if (!isFav) {

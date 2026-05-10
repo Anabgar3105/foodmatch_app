@@ -1,5 +1,6 @@
 import '../models/recipe.dart';
 import 'api_client.dart';
+import 'package:flutter/foundation.dart'; 
 
 class RecipeRepository {
   final ApiClient api;
@@ -26,5 +27,11 @@ class RecipeRepository {
     final jsonList = await api.getJsonList(url);
 
     return jsonList.map((json) => RecipeCardDto.fromJson(json as Map<String, dynamic>)).toList();
+  }
+
+  Future<RecipeDetailDto> getRecipeDetail(int id) async {
+    final url = Uri.http(authority, '$basePath/$id');
+    final response = await api.getJsonObject(url);    
+    return RecipeDetailDto.fromJson(response);
   }
 }

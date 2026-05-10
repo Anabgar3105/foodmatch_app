@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/views/recipe_detail_view.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/favorites_viewmodel.dart';
 import '../models/recipe.dart';
@@ -11,7 +12,6 @@ class FavoritesScreen extends StatefulWidget {
 }
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
-  
   @override
   void initState() {
     super.initState();
@@ -40,7 +40,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.broken_image_outlined, size: 64, color: Colors.grey),
+                    const Icon(
+                      Icons.broken_image_outlined,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       'No pudimos cargar tus recetas favoritas:\n${viewModel.errorMessage}',
@@ -51,7 +55,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ElevatedButton(
                       onPressed: () => viewModel.fetchFavorites(),
                       child: const Text('Reintentar'),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -63,12 +67,18 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.favorite_border, size: 80, color: Colors.grey.shade300),
+                  Icon(
+                    Icons.favorite_border,
+                    size: 80,
+                    color: Colors.grey.shade300,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Aún no tienes recetas favoritas.\n¡Ve al inicio y haz swipe para encontrar tu próxima comida!',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
                 ],
               ),
@@ -88,8 +98,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     );
   }
 
-  // --- Diseño de la tarjeta horizontal para la lista ---
-  Widget _buildFavoriteCard(BuildContext context, RecipeCardDto recipe, FavoritesViewModel viewModel) {
+  Widget _buildFavoriteCard(
+    BuildContext context,
+    RecipeCardDto recipe,
+    FavoritesViewModel viewModel,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -97,15 +110,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // TODO: Navegar a la pantalla de detalle de la receta
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+            ),
+          );
         },
         child: Row(
           children: [
             // Imagen a la izquierda
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(16)),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(16),
+              ),
               child: Image.network(
-                recipe.image ?? 'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
+                recipe.image ??
+                    'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,
@@ -114,7 +135,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     width: 120,
                     height: 120,
                     color: Colors.grey.shade200,
-                    child: const Icon(Icons.broken_image_outlined, size: 40, color: Colors.grey),
+                    child: const Icon(
+                      Icons.broken_image_outlined,
+                      size: 40,
+                      color: Colors.grey,
+                    ),
                   );
                 },
               ),
@@ -128,14 +153,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   children: [
                     Text(
                       recipe.title,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${recipe.preparationTime} min | ${recipe.category}',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -160,8 +191,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
     );
   }
-  // Diálogo de confirmación para no borrar por accidente
- void _showDeleteDialog(BuildContext context, RecipeCardDto recipe, FavoritesViewModel viewModel) {
+
+  void _showDeleteDialog(
+    BuildContext context,
+    RecipeCardDto recipe,
+    FavoritesViewModel viewModel,
+  ) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -184,7 +219,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   child: const Text('Cancelar'),
                 ),
               ),
-              const SizedBox(width: 8), 
+              const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(

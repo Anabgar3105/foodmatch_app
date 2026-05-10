@@ -64,7 +64,6 @@ class ApiClient {
     }
   }
 
-  // NUEVO: Método para hacer POST cuando NO esperamos una respuesta JSON (ej: guardar favorito)
   Future<void> postVoid(Uri url, {Map<String, dynamic>? body}) async {
     try {
       final headers = await _getHeaders();
@@ -73,7 +72,6 @@ class ApiClient {
           .post(url, headers: headers, body: body != null ? jsonEncode(body) : null)
           .timeout(const Duration(seconds: 20));
 
-      // Aceptamos 200 (OK), 201 (Created) y 204 (No Content) como válidos
       if (res.statusCode != 200 && res.statusCode != 201 && res.statusCode != 204) {
         String errorMsg = 'Error HTTP ${res.statusCode}';
         try {
@@ -90,7 +88,6 @@ class ApiClient {
     }
   }
 
-  // Método genérico para hacer GET y recibir una lista
   Future<List<dynamic>> getJsonList(Uri url) async {
     try {
       final headers = await _getHeaders();
@@ -126,7 +123,6 @@ class ApiClient {
           .delete(url, headers: headers)
           .timeout(const Duration(seconds: 20));
 
-      // 200 (OK) y 204 (No Content) son respuestas válidas para un DELETE
       if (res.statusCode != 200 && res.statusCode != 204) {
         String errorMsg = 'Error HTTP ${res.statusCode}';
         try {
@@ -135,6 +131,38 @@ class ApiClient {
         } catch (_) {}
         throw Exception(errorMsg);
       }
+    } on TimeoutException {
+      throw Exception('Tiempo de espera agotado');
+    } catch (e) {
+      throw Exception('Error inesperado: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getJsonObject(Uri url) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await _client
+          .get(url, headers: headers)
+          .timeout(const Duration(seconds: 20));
+
+      if (res.statusCode != 200) {
+        String errorMsg = 'Error HTTP ${res.statusCode}';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
+      }
+
+      final decoded = jsonDecode(res.body);
+
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception(
+          'Se esperaba objeto JSON, Llegó: ${decoded.runtimeType}',
+        );
+      }
+
+      return decoded;
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {

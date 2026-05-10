@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../data/auth_repository.dart';
 import '../data/api_client.dart';
@@ -21,7 +22,8 @@ class LoginViewModel extends ChangeNotifier {
       final loginData = UserLoginDto(username: username, password: password);
       final user = await _repository.login(loginData);
 
-      //TO-DO: Guardar el usuario en sesión (SharedPreferences/Token)
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', user.token);
 
       _isLoading = false;
       notifyListeners();

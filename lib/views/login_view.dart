@@ -32,7 +32,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Logo
                     Semantics(
                       label: 'Logotipo de FoodMatch',
-                      child: Image.asset('assets/icon/logo.png', width: 100, height: 100),
+                      child: Image.asset(
+                        'assets/icon/logo.png',
+                        width: 100,
+                        height: 100,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -74,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                    // Botón de Login (o spinner de carga)
+                    // Botón de Login
                     viewModel.isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : Semantics(
@@ -87,12 +91,31 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _passwordController.text,
                                 );
                                 if (success && mounted) {
-                                  Navigator.pushReplacementNamed(context, AppRoutes.main);
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    AppRoutes.main,
+                                  );
                                 }
                               },
-                              child: const Text('Login'),
+                              child: const Text(
+                                'Login',
+                                style: TextStyle(fontSize: 15),
+                              ),
                             ),
                           ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      child: Text(
+                        '¿No tienes cuenta? Regístrate aquí',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               },

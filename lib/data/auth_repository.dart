@@ -13,4 +13,9 @@ class AuthRepository {
     
     return UserResponseDto.fromJson(json);
   }
+
+  Future<void> register(UserRegistrationDto dto) async {
+    final url = Uri.parse('$baseUrl/signup');
+    await api.postJsonObject(url, dto.toJson()); 
+  }
 }

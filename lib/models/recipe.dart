@@ -22,6 +22,21 @@ class RecipeCardDto {
       image: json['image'],
     );
   }
+
+   String get formatedCategory {
+    switch (category) {
+      case 'ENTRANTES':
+        return 'Entrantes';
+      case 'PLATOS_COMPLETOS':
+        return 'Platos Completos';
+      case 'SNACKS':
+        return 'Snacks';
+      case 'POSTRES':
+        return 'Postres';
+      default:
+        return category;
+    }
+  }
 }
 
 class IngredientDto {
@@ -72,6 +87,21 @@ class RecipeDetailDto {
     required this.ingredients,
     required this.elaborationSteps,
   });
+
+  String get formatedCategory {
+    switch (category) {
+      case 'ENTRANTES':
+        return 'Entrantes';
+      case 'PLATOS_COMPLETOS':
+        return 'Platos Completos';
+      case 'SNACKS':
+        return 'Snacks';
+      case 'POSTRES':
+        return 'Postres';
+      default:
+        return category;
+    }
+  }
 
   factory RecipeDetailDto.fromJson(Map<String, dynamic> json) {
     return RecipeDetailDto(

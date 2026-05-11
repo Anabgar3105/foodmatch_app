@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/viewmodels/recipe_detail_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
+import 'package:foodmatch_app/viewmodels/signup_viewmodel.dart.dart';
 import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'core/app_routes.dart';
@@ -15,6 +16,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),
+        ChangeNotifierProvider(create: (_) => SignupViewModel())
         ],
       child: const FoodMatchApp(),
     ),

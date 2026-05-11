@@ -18,7 +18,6 @@ class ApiClient {
     };
 
     if (token != null) {
-      // Inyectamos el token en la cabecera de Autorización
       headers['Authorization'] = 'Bearer $token'; 
     }
 
@@ -47,7 +46,7 @@ class ApiClient {
         ); 
       }
 
-      final decoded = jsonDecode(res.body); // Decodificamos a JSON
+      final decoded = jsonDecode(res.body); 
 
       if (decoded is! Map<String, dynamic>) {
         throw Exception(
@@ -57,13 +56,14 @@ class ApiClient {
       return decoded;
     } on TimeoutException {
       throw Exception(
-        'La conexión está tardando más de lo esperado y no se ha podido completar la solicitud. Por favor, inténtalo de nuevo más tarde.',
+        '¡Ups! Hay problemas de conexión con el servidor. Inténtalo de nuevo más tarde.',
       );
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception(e.toString());
     }
   }
 
+  // Método genérico para enviar datos por POST y no esperar respuesta (void)
   Future<void> postVoid(Uri url, {Map<String, dynamic>? body}) async {
     try {
       final headers = await _getHeaders();
@@ -84,7 +84,7 @@ class ApiClient {
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception(e.toString());
     }
   }
 
@@ -111,7 +111,7 @@ class ApiClient {
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception(e.toString());
     }
   }
 
@@ -134,10 +134,11 @@ class ApiClient {
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception(e.toString());
     }
   }
 
+  // Método genérico para hacer GET
   Future<Map<String, dynamic>> getJsonObject(Uri url) async {
     try {
       final headers = await _getHeaders();
@@ -166,7 +167,7 @@ class ApiClient {
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
-      throw Exception('Error inesperado: $e');
+      throw Exception(e.toString());
     }
   }
 }

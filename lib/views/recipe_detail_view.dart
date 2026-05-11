@@ -59,9 +59,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverAppBar(
-                    expandedHeight: 340.0, 
+                    expandedHeight: 340.0,
                     pinned: true,
+                    centerTitle: false, 
                     backgroundColor: Theme.of(context).primaryColor,
+                    // Botón de favoritos arriba a la derecha
                     actions: [
                       Consumer<RecipeViewModel>(
                         builder: (context, recipeVm, _) {
@@ -75,11 +77,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             child: IconButton(
                               icon: Icon(
                                 isFav ? Icons.favorite : Icons.favorite_border,
-                                color: isFav ? Theme.of(context).primaryColor : Colors.white,
+                                color: isFav ? Colors.red : Colors.white,
                               ),
                               onPressed: () {
                                 recipeVm.toggleFavorite(recipe.id);
-                                context.read<FavoritesViewModel>().fetchFavorites();
+                                context
+                                    .read<FavoritesViewModel>()
+                                    .fetchFavorites();
                               },
                             ),
                           );
@@ -87,39 +91,63 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      centerTitle: false,
+                      centerTitle: false, 
                       titlePadding: EdgeInsets.zero, 
                       title: LayoutBuilder(
                         builder: (context, constraints) {
-                          return Padding(
-                            padding: const EdgeInsets.only(left: 16, bottom: 12, right: 48),
+                          final bool isCollapsed =constraints.maxHeight <=
+                              (kToolbarHeight + MediaQuery.of(context).padding.top + 10);
+                          return Container(
+                            width: double
+                                .infinity, 
+                            padding: EdgeInsets.only(
+                              left: isCollapsed ? 56 : 16,
+                              bottom: 12,
+                              right: 16,
+                            ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start, 
                               children: [
-                                // TÍTULO
                                 Text(
                                   recipe.title,
+                                  textAlign: TextAlign.left, 
+                                  maxLines: isCollapsed ? 1 : 3,
+                                  overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
-                                    shadows: [Shadow(color: Colors.black, blurRadius: 8)],
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black,
+                                        blurRadius: 10,
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 8),
-                                // ETIQUETAS
-                                Row(
-                                  children: [
-                                    _buildInfoChip(Icons.timer_outlined, '${recipe.preparationTime} min'),
-                                    const SizedBox(width: 8),
-                                    _buildInfoChip(Icons.restaurant_menu, recipe.category),
-                                  ],
-                                ),
+                                if (!isCollapsed) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      _buildInfoChip(
+                                        Icons.timer_outlined,
+                                        '${recipe.preparationTime} min',
+                                        Theme.of(context).primaryColor.withOpacity(0.1),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      _buildInfoChip(
+                                        Icons.restaurant_menu,
+                                        recipe.formatedCategory,
+                                        Theme.of(context).primaryColor.withOpacity(0.1),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ],
                             ),
                           );
-                        }
+                        },
                       ),
                       background: Stack(
                         fit: StackFit.expand,
@@ -127,14 +155,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           Image.network(
                             recipe.image,
                             fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => Container(color: Colors.grey),
+                            errorBuilder: (ctx, err, stack) =>
+                                Container(color: Colors.grey),
                           ),
                           const DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [Colors.transparent, Colors.black87], // Más oscuro abajo
+                                colors: [Colors.transparent, Colors.black87],
                               ),
                             ),
                           ),
@@ -223,30 +252,30 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
 }
 
 // Widget para crear los "chips" de información
-  Widget _buildInfoChip(IconData icon, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1), // Tu color naranja con transparencia
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 14),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
+Widget _buildInfoChip(IconData icon, String label, Color? color) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color ?? Color(0xFFFF7A59).withOpacity(0.1),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.white, size: 14),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 
 // Clase auxiliar para que el TabBar se quede pegado arriba al hacer scroll
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {

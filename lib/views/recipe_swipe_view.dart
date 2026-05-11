@@ -281,7 +281,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    recipe.category,
+                    recipe.formatedCategory,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,

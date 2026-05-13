@@ -3,7 +3,7 @@ class RecipeCardDto {
   final String title;
   final int preparationTime;
   final String category;
-  final String? image; 
+  final String? image;
 
   RecipeCardDto({
     required this.id,
@@ -15,15 +15,15 @@ class RecipeCardDto {
 
   factory RecipeCardDto.fromJson(Map<String, dynamic> json) {
     return RecipeCardDto(
-      id: json['id'],
-      title: json['title'],
-      preparationTime: json['preparationTime'],
-      category: json['category'],
+      id: json['id'] ?? 0,
+      title: json['title'] ?? 'Receta sin título',
+      preparationTime: json['preparationTime'] ?? 0,
+      category: json['category'] ?? 'Sin Categoría',
       image: json['image'],
     );
   }
 
-   String get formatedCategory {
+  String get formatedCategory {
     switch (category) {
       case 'ENTRANTES':
         return 'Entrantes';
@@ -44,7 +44,11 @@ class IngredientDto {
   final String quantity;
   final String unit;
 
-  IngredientDto({required this.name, required this.quantity, required this.unit});
+  IngredientDto({
+    required this.name,
+    required this.quantity,
+    required this.unit,
+  });
 
   factory IngredientDto.fromJson(Map<String, dynamic> json) {
     return IngredientDto(
@@ -103,19 +107,36 @@ class RecipeDetailDto {
     }
   }
 
+  String get optimizedImage {
+    if (image == null || image!.isEmpty) {
+      return 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+    }
+    // Si es de Cloudinary, le inyectamos los parámetros de optimización
+    if (image!.contains('cloudinary.com') && !image!.contains('q_auto')) {
+      return image!.replaceFirst('/upload/', '/upload/q_auto,f_auto,w_600/');
+    }
+    return image!;
+  }
+
   factory RecipeDetailDto.fromJson(Map<String, dynamic> json) {
     return RecipeDetailDto(
       id: json['id'],
       title: json['title'] ?? '',
-      image: json['image'] ?? 'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
+      image:
+          json['image'] ??
+          'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
       category: json['category'] ?? '',
       preparationTime: json['preparationTime'] ?? 0,
-      ingredients: (json['ingredients'] as List?)
+      ingredients:
+          (json['ingredients'] as List?)
               ?.map((i) => IngredientDto.fromJson(i))
-              .toList() ?? [],
-      elaborationSteps: (json['steps'] as List?)
+              .toList() ??
+          [],
+      elaborationSteps:
+          (json['steps'] as List?)
               ?.map((e) => ElaborationStepDto.fromJson(e))
-              .toList() ?? [],
+              .toList() ??
+          [],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/viewmodels/favorites_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
@@ -6,8 +7,15 @@ import '../viewmodels/recipe_detail_viewmodel.dart';
 
 class RecipeDetailScreen extends StatefulWidget {
   final int recipeId;
+  final String? initialTitle;
+  final String? initialImage;
 
-  const RecipeDetailScreen({super.key, required this.recipeId});
+  const RecipeDetailScreen({
+    super.key,
+    required this.recipeId,
+    this.initialTitle,
+    this.initialImage,
+  });
 
   @override
   State<RecipeDetailScreen> createState() => _RecipeDetailScreenState();
@@ -22,37 +30,28 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     });
   }
 
+  // Helper para asegurar que usamos la URL optimizada que ya está en caché
+  String _getOptimizedUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+    }
+    if (url.contains('cloudinary.com') && !url.contains('q_auto')) {
+      return url.replaceFirst('/upload/', '/upload/q_auto,f_auto,w_600/');
+    }
+    return url;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Consumer<RecipeDetailViewModel>(
         builder: (context, viewModel, child) {
-          if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (viewModel.errorMessage != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(viewModel.errorMessage!),
-                  TextButton(
-                    onPressed: () =>
-                        viewModel.fetchRecipeDetail(widget.recipeId),
-                    child: const Text('Reintentar'),
-                  ),
-                ],
-              ),
-            );
-          }
-
           final recipe = viewModel.recipe;
-          if (recipe == null) return const SizedBox.shrink();
 
-          // Interfaz con Imagen colapsable y pestañas
+          final displayTitle = recipe?.title ?? widget.initialTitle ?? '';
+          final displayImage =
+              recipe?.optimizedImage ?? _getOptimizedUrl(widget.initialImage);
+
           return DefaultTabController(
             length: 2,
             child: NestedScrollView(
@@ -61,13 +60,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   SliverAppBar(
                     expandedHeight: 340.0,
                     pinned: true,
-                    centerTitle: false, 
+                    centerTitle: false,
                     backgroundColor: Theme.of(context).primaryColor,
-                    // Botón de favoritos arriba a la derecha
                     actions: [
                       Consumer<RecipeViewModel>(
                         builder: (context, recipeVm, _) {
-                          final isFav = recipeVm.isFavorite(recipe.id);
+                          final isFav = recipeVm.isFavorite(widget.recipeId);
                           return Container(
                             margin: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
@@ -80,7 +78,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 color: isFav ? Colors.red : Colors.white,
                               ),
                               onPressed: () {
-                                recipeVm.toggleFavorite(recipe.id);
+                                recipeVm.toggleFavorite(widget.recipeId);
                                 context
                                     .read<FavoritesViewModel>()
                                     .fetchFavorites();
@@ -91,27 +89,29 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      centerTitle: false, 
-                      titlePadding: EdgeInsets.zero, 
+                      centerTitle: false,
+                      titlePadding: EdgeInsets.zero,
                       title: LayoutBuilder(
                         builder: (context, constraints) {
-                          final bool isCollapsed =constraints.maxHeight <=
-                              (kToolbarHeight + MediaQuery.of(context).padding.top + 10);
+                          final bool isCollapsed =
+                              constraints.maxHeight <=
+                              (kToolbarHeight +
+                                  MediaQuery.of(context).padding.top +
+                                  10);
                           return Container(
-                            width: double
-                                .infinity, 
+                            width: double.infinity,
                             padding: EdgeInsets.only(
                               left: isCollapsed ? 56 : 16,
                               bottom: 12,
-                              right: 16,
+                              right: isCollapsed ? 80 : 16,
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start, 
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  recipe.title,
-                                  textAlign: TextAlign.left, 
+                                  displayTitle,
+                                  textAlign: TextAlign.left,
                                   maxLines: isCollapsed ? 1 : 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
@@ -126,20 +126,24 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                     ],
                                   ),
                                 ),
-                                if (!isCollapsed) ...[
+                                if (!isCollapsed && recipe != null) ...[
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
                                       _buildInfoChip(
                                         Icons.timer_outlined,
                                         '${recipe.preparationTime} min',
-                                        Theme.of(context).primaryColor.withOpacity(0.1),
+                                        Theme.of(
+                                          context,
+                                        ).primaryColor.withOpacity(0.1),
                                       ),
                                       const SizedBox(width: 8),
                                       _buildInfoChip(
                                         Icons.restaurant_menu,
                                         recipe.formatedCategory,
-                                        Theme.of(context).primaryColor.withOpacity(0.1),
+                                        Theme.of(
+                                          context,
+                                        ).primaryColor.withOpacity(0.1),
                                       ),
                                     ],
                                   ),
@@ -152,11 +156,14 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       background: Stack(
                         fit: StackFit.expand,
                         children: [
-                          Image.network(
-                            recipe.image,
+                          CachedNetworkImage(
+                            imageUrl: displayImage,
                             fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) =>
-                                Container(color: Colors.grey),
+                            placeholder: (context, url) => Container(
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
+                            ),
                           ),
                           const DecoratedBox(
                             decoration: BoxDecoration(
@@ -178,7 +185,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                         labelColor: Theme.of(context).primaryColor,
                         unselectedLabelColor: Colors.grey,
                         indicatorColor: Theme.of(context).primaryColor,
-                        tabs: [
+                        tabs: const [
                           Tab(text: 'Ingredientes'),
                           Tab(text: 'Preparación'),
                         ],
@@ -187,62 +194,80 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   ),
                 ];
               },
-              body: TabBarView(
-                children: [
-                  // PESTAÑA 1: Ingredientes
-                  ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: recipe.ingredients.length,
-                    itemBuilder: (context, index) {
-                      final ing = recipe.ingredients[index];
-                      return ListTile(
-                        leading: Icon(
-                          Icons.check_circle_outline,
-                          color: Theme.of(context).primaryColor,
-                        ),
-                        title: Text(
-                          ing.name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        trailing: Text('${ing.quantity} ${ing.unit}'),
-                      );
-                    },
-                  ),
-                  // PESTAÑA 2: Pasos
-                  ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: recipe.elaborationSteps.length,
-                    itemBuilder: (context, index) {
-                      final step = recipe.elaborationSteps[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 16.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Theme.of(context).primaryColor,
-                              child: Text(
-                                '${step.stepNumber}',
-                                style: const TextStyle(color: Colors.white),
+              body: viewModel.isLoading
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    )
+                  : viewModel.errorMessage != null
+                  ? Center(child: Text(viewModel.errorMessage!))
+                  : recipe == null
+                  ? const SizedBox.shrink()
+                  : TabBarView(
+                      children: [
+                        // PESTAÑA 1: Ingredientes
+                        ListView.builder(
+                          physics: const ClampingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                          itemCount: recipe.ingredients.length,
+                          itemBuilder: (context, index) {
+                            final ing = recipe.ingredients[index];
+                            return ListTile(
+                              leading: Icon(
+                                Icons.check_circle_outline,
+                                color: Theme.of(context).primaryColor,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                step.description,
+                              title: Text(
+                                ing.name,
                                 style: const TextStyle(
-                                  fontSize: 16,
-                                  height: 1.5,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                            ),
-                          ],
+                              trailing: Text('${ing.quantity} ${ing.unit}'),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        // PESTAÑA 2: Pasos
+                        ListView.builder(
+                          physics: const ClampingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+                          itemCount: recipe.elaborationSteps.length,
+                          itemBuilder: (context, index) {
+                            final step = recipe.elaborationSteps[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: Theme.of(
+                                      context,
+                                    ).primaryColor,
+                                    child: Text(
+                                      '${step.stepNumber}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      step.description,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
             ),
           );
         },

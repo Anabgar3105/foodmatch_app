@@ -20,6 +20,7 @@ class RecipeDetailViewModel extends ChangeNotifier {
   Future<void> fetchRecipeDetail(int recipeId) async {
     _isLoading = true;
     _errorMessage = null;
+    _recipe = null;
     Future.microtask(() => notifyListeners()); 
 
     try {

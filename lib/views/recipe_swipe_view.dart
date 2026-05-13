@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/viewmodels/favorites_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -15,7 +16,8 @@ class RecipeSwipeScreen extends StatefulWidget {
 
 class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
   bool _isInit = true;
-  // Controlador para poder deslizar las tarjetas con los botones
+  bool _isFirstImageReady = false;
+
   final CardSwiperController _swiperController = CardSwiperController();
 
   @override
@@ -23,10 +25,57 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     super.didChangeDependencies();
     if (_isInit) {
       final category = ModalRoute.of(context)!.settings.arguments as String;
-      Future.microtask(
-        () => context.read<RecipeViewModel>().fetchRecipes(category: category),
-      );
+
+      Future.microtask(() {
+        _loadDataAndPrecache(category);
+      });
+
       _isInit = false;
+    }
+  }
+
+  String _getOptimizedUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+    }
+    if (url.contains('cloudinary.com') && !url.contains('q_auto')) {
+      return url.replaceFirst('/upload/', '/upload/q_auto,f_auto,w_600/');
+    }
+    return url;
+  }
+
+  Future<void> _loadDataAndPrecache(String category) async {
+    final viewModel = context.read<RecipeViewModel>();
+    await viewModel.fetchRecipes(category: category);
+
+    if (!mounted) return;
+
+    if (viewModel.recipes.isNotEmpty) {
+      final firstImageUrl = _getOptimizedUrl(viewModel.recipes.first.image);
+      await precacheImage(CachedNetworkImageProvider(firstImageUrl), context);
+
+      if (viewModel.recipes.length > 1) {
+        precacheImage(
+          CachedNetworkImageProvider(
+            _getOptimizedUrl(viewModel.recipes[1].image),
+          ),
+          context,
+        );
+      }
+      if (viewModel.recipes.length > 2) {
+        precacheImage(
+          CachedNetworkImageProvider(
+            _getOptimizedUrl(viewModel.recipes[2].image),
+          ),
+          context,
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _isFirstImageReady = true;
+        });
+      }
     }
   }
 
@@ -46,8 +95,26 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
       ),
       body: Consumer<RecipeViewModel>(
         builder: (context, viewModel, child) {
-          if (viewModel.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+          if (viewModel.isLoading ||
+              (viewModel.recipes.isNotEmpty && !_isFirstImageReady)) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Preparando recetas...',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            );
           }
 
           if (viewModel.errorMessage != null) {
@@ -125,28 +192,34 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
     );
   }
 
- bool _onSwipe(
-      int previousIndex, int? currentIndex, CardSwiperDirection direction) {
-    
+  bool _onSwipe(
+    int previousIndex,
+    int? currentIndex,
+    CardSwiperDirection direction,
+  ) {
     final viewModel = context.read<RecipeViewModel>();
     final recipe = viewModel.recipes[previousIndex];
 
-    if (direction == CardSwiperDirection.right) {
-      debugPrint('Deslizado right');
-      
-      // viewModel.toggleFavorite(recipe.id).then((success) {
-      //   if (success && context.mounted) {
-      //     context.read<FavoritesViewModel>().fetchFavorites(); 
-      //   }
-      // });
+    if (currentIndex != null && currentIndex + 2 < viewModel.recipes.length) {
+      precacheImage(
+        CachedNetworkImageProvider(
+          _getOptimizedUrl(viewModel.recipes[currentIndex + 2].image),
+        ),
+        context,
+      );
+    }
 
+    if (direction == CardSwiperDirection.right) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => RecipeDetailScreen(recipeId: recipe.id),
+          builder: (context) => RecipeDetailScreen(
+            recipeId: recipe.id,
+            initialTitle: recipe.title,
+            initialImage: recipe.image,
+          ),
         ),
       );
-
     } else if (direction == CardSwiperDirection.left) {
       debugPrint('Deslizado left');
     }
@@ -157,6 +230,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
   Widget _buildRecipeCard(RecipeCardDto recipe) {
     return Container(
       decoration: BoxDecoration(
+        color: const Color.fromARGB(255, 249, 210, 196),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -165,131 +239,124 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
             offset: const Offset(0, 5),
           ),
         ],
-        image: DecorationImage(
-          image: NetworkImage(
-            recipe.image ??
-                'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
-          ),
-          fit: BoxFit.cover,
-        ),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.black45, Colors.transparent, Colors.black87],
-            stops: [0.0, 0.4, 1.0],
-          ),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          // mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Consumer<RecipeViewModel>(
-                  builder: (context, viewModel, child) {
-                    final isFav = viewModel.isFavorite(recipe.id);
+            CachedNetworkImage(
+              imageUrl: _getOptimizedUrl(recipe.image),
+              fit: BoxFit.contain,
+            ),
 
-                    return Semantics(
-                      label: isFav
-                          ? 'Quitar de favoritos'
-                          : 'Guardar en favoritos',
-                      button: true,
-                      child: IconButton(
-                        icon: Icon(
-                          isFav ? Icons.bookmark : Icons.bookmark_border,
-                          color: isFav
-                              ? Theme.of(context).primaryColor
-                              : Colors.white,
-                          size: 36,
-                        ),
-                        onPressed: () async {
-                          final success = await viewModel.toggleFavorite(
-                            recipe.id,
-                          );
+            Container(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Consumer<RecipeViewModel>(
+                        builder: (context, viewModel, child) {
+                          final isFav = viewModel.isFavorite(recipe.id);
 
-                          if (!context.mounted) return;
-
-                          if (success) {
-                            context.read<FavoritesViewModel>().fetchFavorites();
-
-                            if (!isFav) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    '¡${recipe.title} guardada!',
-                                  ),
-                                ),
-                              );
-                            }
-                          } else {
-                            // Mensaje de error si el servidor falla
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Error de conexión. No se pudo actualizar favoritos',
-                                ),
-                                duration: Duration(seconds: 2),
-                                backgroundColor: Colors.red,
+                          return Semantics(
+                            label: isFav
+                                ? 'Quitar de favoritos'
+                                : 'Guardar en favoritos',
+                            button: true,
+                            child: IconButton(
+                              icon: Icon(
+                                isFav ? Icons.bookmark : Icons.bookmark_border,
+                                color: Theme.of(context).primaryColor,
+                                size: 36,
                               ),
-                            );
-                          }
+                              onPressed: () async {
+                                final success = await viewModel.toggleFavorite(
+                                  recipe.id,
+                                );
+                                if (!context.mounted) return;
+
+                                if (success) {
+                                  context
+                                      .read<FavoritesViewModel>()
+                                      .fetchFavorites();
+                                  if (!isFav) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '¡${recipe.title} guardada!',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Error de conexión.'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          );
                         },
                       ),
-                    );
-                  },
-                ),
-              ],
-            ),
-
-            const Spacer(),
-            Text(
-              recipe.title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.timer_outlined,
-                  color: Colors.white70,
-                  size: 20,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${recipe.preparationTime} min',
-                  style: const TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-                const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 4,
+                    ],
                   ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    recipe.formatedCategory,
+                  const Spacer(),
+                  Text(
+                    recipe.title,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
+                      color: Color(0xFF3E2723),
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
+                      height: 1.2,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.timer_outlined,
+                        color: Color(0xFF5D4037),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${recipe.preparationTime} min',
+                        style: const TextStyle(
+                          color: Color(0xFF5D4037),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          recipe.formatedCategory,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),

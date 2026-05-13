@@ -125,8 +125,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 left: Radius.circular(16),
               ),
               child: Image.network(
-                recipe.image ??
-                    'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
+                recipe.image ?? '/assets/icon/logo.png',
                 width: 120,
                 height: 120,
                 fit: BoxFit.cover,

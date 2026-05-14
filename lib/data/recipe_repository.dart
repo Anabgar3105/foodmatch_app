@@ -27,4 +27,10 @@ class RecipeRepository {
 
     return jsonList.map((json) => RecipeCardDto.fromJson(json as Map<String, dynamic>)).toList();
   }
+
+  Future<RecipeDetailDto> getRecipeDetail(int id) async {
+    final url = Uri.http(authority, '$basePath/$id');
+    final response = await api.getJsonObject(url);    
+    return RecipeDetailDto.fromJson(response);
+  }
 }

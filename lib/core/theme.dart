@@ -60,12 +60,12 @@ class AppTheme {
     return ThemeData(
       brightness: Brightness.dark,
       primaryColor: primaryColor,
-      scaffoldBackgroundColor: const Color(0xFF121212), 
+      scaffoldBackgroundColor: const Color.fromARGB(255, 39, 39, 39), 
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
         secondary: primaryColor.withOpacity(0.8),
         background: const Color(0xFF121212),
-        surface: const Color(0xFF1E1E1E), 
+        surface: const Color.fromARGB(255, 74, 74, 74), 
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),

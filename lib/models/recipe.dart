@@ -76,7 +76,7 @@ class ElaborationStepDto {
 class RecipeDetailDto {
   final int id;
   final String title;
-  final String image;
+  final String? image;
   final String category;
   final int preparationTime;
   final List<IngredientDto> ingredients;
@@ -85,7 +85,7 @@ class RecipeDetailDto {
   RecipeDetailDto({
     required this.id,
     required this.title,
-    required this.image,
+    this.image,
     required this.category,
     required this.preparationTime,
     required this.ingredients,

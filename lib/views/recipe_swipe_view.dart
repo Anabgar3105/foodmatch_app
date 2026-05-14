@@ -248,6 +248,10 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
             CachedNetworkImage(
               imageUrl: _getOptimizedUrl(recipe.image),
               fit: BoxFit.contain,
+              errorWidget: (context, url, error) => Container(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                child: const Icon(Icons.broken_image, size: 50),
+              ),
             ),
 
             Container(

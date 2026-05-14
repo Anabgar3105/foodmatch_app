@@ -122,9 +122,7 @@ class RecipeDetailDto {
     return RecipeDetailDto(
       id: json['id'],
       title: json['title'] ?? '',
-      image:
-          json['image'] ??
-          'https://content.elmueble.com/medio/2025/09/26/bocadillo-sin-pan-de-tortilla-con-jamon-queso-y-canonigos_4dc8baa9_250926121250_900x900.webp',
+      image: json['image'] ??'',
       category: json['category'] ?? '',
       preparationTime: json['preparationTime'] ?? 0,
       ingredients:

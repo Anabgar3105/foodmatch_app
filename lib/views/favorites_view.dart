@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/views/recipe_detail_view.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +19,16 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FavoritesViewModel>().fetchFavorites();
     });
+  }
+
+  String _getOptimizedUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return 'https://via.placeholder.com/400x300?text=Sin+Imagen';
+    }
+    if (url.contains('cloudinary.com') && !url.contains('q_auto')) {
+      return url.replaceFirst('/upload/', '/upload/q_auto,f_auto,w_600/');
+    }
+    return url;
   }
 
   @override
@@ -124,25 +135,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               borderRadius: const BorderRadius.horizontal(
                 left: Radius.circular(16),
               ),
-              child: Image.network(
-                recipe.image ?? '/assets/icon/logo.png',
+              child: CachedNetworkImage(imageUrl: _getOptimizedUrl(recipe.image), 
+              width: 120, 
+              height: 120, 
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(
                 width: 120,
                 height: 120,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: 120,
-                    height: 120,
-                    color: Colors.grey.shade200,
-                    child: const Icon(
-                      Icons.broken_image_outlined,
-                      size: 40,
-                      color: Colors.grey,
-                    ),
-                  );
-                },
+                color: Colors.grey.shade200,
+                child: const Center(child: CircularProgressIndicator()),
               ),
-            ),
+              errorWidget: (context, url, error) => Container(
+                width: 120,
+                height: 120,
+                color: Colors.grey.shade200,
+                child: const Icon(Icons.broken_image, color: Colors.grey),
+                ),
+              ),
+              ),
             // Información a la derecha
             Expanded(
               child: Padding(

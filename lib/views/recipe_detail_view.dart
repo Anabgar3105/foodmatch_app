@@ -77,11 +77,32 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 isFav ? Icons.favorite : Icons.favorite_border,
                                 color: isFav ? Colors.red : Colors.white,
                               ),
-                              onPressed: () {
-                                recipeVm.toggleFavorite(widget.recipeId);
-                                context
-                                    .read<FavoritesViewModel>()
-                                    .fetchFavorites();
+                              onPressed: () async {
+                                final success = await recipeVm.toggleFavorite(
+                                  widget.recipeId,
+                                );
+                                if (success) {
+                                  context
+                                      .read<FavoritesViewModel>()
+                                      .fetchFavorites();
+                                  if (!isFav) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          '¡${recipe!.title} guardada!',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Error al actualizar favoritos',
+                                      ),
+                                    ),
+                                  );
+                                }
                               },
                             ),
                           );
@@ -160,7 +181,9 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             imageUrl: displayImage,
                             fit: BoxFit.cover,
                             errorWidget: (context, url, error) => Container(
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
+                              color: Theme.of(
+                                context,
+                              ).primaryColor.withOpacity(0.1),
                               child: const Icon(Icons.broken_image, size: 50),
                             ),
                             placeholder: (context, url) => Container(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/views/help_view.dart';
+import 'package:foodmatch_app/views/settings_view.dart';
 import 'package:provider/provider.dart';
 import '../core/app_routes.dart';
 import '../viewmodels/profile_viewmodel.dart';
@@ -84,8 +85,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               // TARJETA DE OPCIONES 
               Card(
                 elevation: 2,
-                shadowColor: Colors.black12,
-                color: Colors.white,
+                shadowColor: Colors.black45,
+                color: Theme.of(context).cardColor,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Column(
                   children: [
@@ -102,7 +103,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.settings_outlined, 
                       iconColor: Colors.purple, 
                       bgColor: Colors.purple.withOpacity(0.1),
-                      title: 'Ajustes'
+                      title: 'Ajustes',
+                      destination: const SettingsScreen()
                     ),
                     const Divider(height: 1, indent: 64, endIndent: 20, color: Colors.black12),
                     _buildOptionTile(
@@ -126,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).cardColor,
                     side: const BorderSide(color: Colors.red, width: 1.5),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     elevation: 2,
@@ -169,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         decoration: BoxDecoration(color: bgColor, shape: BoxShape.circle),
         child: Icon(icon, color: iconColor),
       ),
-      title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+      title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () {
         if (destination != null) {

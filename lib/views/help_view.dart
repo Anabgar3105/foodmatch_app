@@ -139,10 +139,9 @@ class HelpScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
       child: Card(
-        elevation: 2,
-        shadowColor: Colors.black45,
+        elevation: 3,
+        shadowColor: Colors.black54,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        color: Colors.white,
         child: Theme(
           data: ThemeData().copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(
@@ -150,14 +149,14 @@ class HelpScreen extends StatelessWidget {
             collapsedIconColor: Colors.grey,
             title: Text(
               question,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style:  TextStyle(fontWeight: FontWeight.w600, fontSize: 16, color: Color(0xFFFF7A59) ),
             ),
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
                 child: Text(
                   answer,
-                  style: TextStyle(color: Colors.grey[700], height: 1.5),
+                  style: TextStyle(color: Colors.grey[600], height: 1.5),
                 ),
               ),
             ],

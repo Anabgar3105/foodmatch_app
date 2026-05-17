@@ -23,10 +23,21 @@ Future<void> main() async {
   final String initialRoute = (token != null && token.isNotEmpty)
       ? AppRoutes.main
       : AppRoutes.login;
+
+  final String? savedTheme = prefs.getString('theme_preference');
+  ThemeMode initialThemeMode;
+  
+  if (savedTheme == 'dark') {
+    initialThemeMode = ThemeMode.dark;
+  } else if (savedTheme == 'light') {
+    initialThemeMode = ThemeMode.light;
+  } else {
+    initialThemeMode = ThemeMode.system; 
+  }
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel(initialThemeMode)),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),

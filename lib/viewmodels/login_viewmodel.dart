@@ -28,6 +28,9 @@ class LoginViewModel extends ChangeNotifier {
       final user = await _repository.login(loginData);
 
       await prefs.setString('auth_token', user.token);
+      await prefs.setString('auth_username', user.username); 
+      await prefs.setString('auth_email', user.email);
+      await prefs.setString('auth_full_name', '${user.name} ${user.surname1}${user.surname2 != null ? ' ${user.surname2}' : ''}');
 
       _isLoading = false;
       notifyListeners();

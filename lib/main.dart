@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/viewmodels/add_recipe_viewmodel.dart';
+import 'package:foodmatch_app/viewmodels/profile_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_detail_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/signup_viewmodel.dart.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),
         ChangeNotifierProvider(create: (_) => SignupViewModel()),
         ChangeNotifierProvider(create: (_) => AddRecipeViewModel()),
+        ChangeNotifierProvider(create: (_) => ProfileViewModel()),
       ],
       child: FoodMatchApp(initialRoute: initialRoute),
     ),

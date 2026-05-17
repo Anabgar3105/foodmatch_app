@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/viewmodels/add_recipe_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_detail_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/signup_viewmodel.dart.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme.dart';
 import 'core/app_routes.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'viewmodels/favorites_viewmodel.dart';
 
-void main() {
+Future<void> main() async {
+  // Asegurar la comunicación nativa antes de inicializar SharedPreferences
+  WidgetsFlutterBinding.ensureInitialized();
+
+  //Comprobamos si existe un token guardado en el almacenamiento local
+  final prefs = await SharedPreferences.getInstance();
+  final String? token = prefs.getString('auth_token');
+
+  // Configuramos pantalla inicial según la existencia del token
+  final String initialRoute = (token != null && token.isNotEmpty)
+      ? AppRoutes.main
+      : AppRoutes.login;
   runApp(
     MultiProvider(
       providers: [
@@ -16,15 +29,18 @@ void main() {
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),
-        ChangeNotifierProvider(create: (_) => SignupViewModel())
-        ],
-      child: const FoodMatchApp(),
+        ChangeNotifierProvider(create: (_) => SignupViewModel()),
+        ChangeNotifierProvider(create: (_) => AddRecipeViewModel()),
+      ],
+      child: FoodMatchApp(initialRoute: initialRoute),
     ),
   );
 }
 
 class FoodMatchApp extends StatelessWidget {
-  const FoodMatchApp({super.key});
+  final String initialRoute;
+
+  const FoodMatchApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +53,7 @@ class FoodMatchApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeViewModel.themeMode,
-      initialRoute: AppRoutes.login,
+      initialRoute: initialRoute,
       routes: AppRoutes.routes,
     );
   }

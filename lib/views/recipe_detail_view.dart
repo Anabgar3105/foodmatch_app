@@ -58,6 +58,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverAppBar(
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back,color: Colors.white,),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                     expandedHeight: 340.0,
                     pinned: true,
                     centerTitle: false,

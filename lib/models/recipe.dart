@@ -138,3 +138,33 @@ class RecipeDetailDto {
     );
   }
 }
+
+class RecipeCreateDto {
+  final String title;
+  final int preparationTime;
+  final String category;
+  final String image;
+  final List<Map<String, dynamic>> ingredients;
+  final List<Map<String, dynamic>> elaborationSteps;
+
+  RecipeCreateDto({
+    required this.title,
+    required this.preparationTime,
+    required this.category,
+    required this.image,
+    required this.ingredients,
+    required this.elaborationSteps,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'preparationTime': preparationTime,
+        'category': category,
+        'image': image,
+        'ingredients': ingredients,
+        'steps': elaborationSteps.asMap().entries.map((entry) => {
+          'stepNum': entry.key + 1,
+          'instruction': entry.value['description']
+        }).toList(),
+      };
+}

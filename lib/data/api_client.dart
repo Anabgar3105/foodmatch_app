@@ -10,7 +10,7 @@ class ApiClient {
 
   Future<Map<String, String>> _getHeaders() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token'); 
+    final token = prefs.getString('auth_token');
 
     final headers = {
       'Content-Type': 'application/json',
@@ -18,7 +18,7 @@ class ApiClient {
     };
 
     if (token != null) {
-      headers['Authorization'] = 'Bearer $token'; 
+      headers['Authorization'] = 'Bearer $token';
     }
 
     return headers;
@@ -41,12 +41,10 @@ class ApiClient {
           final decoded = jsonDecode(res.body);
           if (decoded['message'] != null) errorMsg = decoded['message'];
         } catch (_) {}
-        throw Exception(
-          errorMsg,
-        ); 
+        throw Exception(errorMsg);
       }
 
-      final decoded = jsonDecode(res.body); 
+      final decoded = jsonDecode(res.body);
 
       if (decoded is! Map<String, dynamic>) {
         throw Exception(
@@ -69,10 +67,16 @@ class ApiClient {
       final headers = await _getHeaders();
       // Si hay body lo codificamos, si no, lo mandamos nulo
       final res = await _client
-          .post(url, headers: headers, body: body != null ? jsonEncode(body) : null)
+          .post(
+            url,
+            headers: headers,
+            body: body != null ? jsonEncode(body) : null,
+          )
           .timeout(const Duration(seconds: 20));
 
-      if (res.statusCode != 200 && res.statusCode != 201 && res.statusCode != 204) {
+      if (res.statusCode != 200 &&
+          res.statusCode != 201 &&
+          res.statusCode != 204) {
         String errorMsg = 'Error HTTP ${res.statusCode}';
         try {
           final decoded = jsonDecode(res.body);
@@ -80,7 +84,6 @@ class ApiClient {
         } catch (_) {}
         throw Exception(errorMsg);
       }
-      
     } on TimeoutException {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
@@ -168,6 +171,29 @@ class ApiClient {
       throw Exception('Tiempo de espera agotado');
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  Future<String> uploadImage(Uri url, String filePath) async {
+    try {
+      final headers = await _getHeaders();
+      
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll(headers);
+      
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+      final streamedResponse = await _client.send(request).timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Error al subir la imagen: ${response.statusCode}');
+      }
+            final decoded = jsonDecode(response.body);
+      return decoded['url']; 
+      
+    } catch (e) {
+      throw Exception('Fallo al subir imagen: $e');
     }
   }
 }

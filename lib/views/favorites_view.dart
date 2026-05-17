@@ -171,7 +171,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${recipe.preparationTime} min | ${recipe.category}',
+                      '${recipe.preparationTime} min | ${recipe.formatedCategory}',
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 14,
@@ -189,6 +189,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               button: true,
               child: IconButton(
                 icon: const Icon(Icons.delete, color: Colors.redAccent),
+                tooltip: 'Eliminar de favoritos',
                 onPressed: () {
                   _showDeleteDialog(context, recipe, viewModel);
                 },

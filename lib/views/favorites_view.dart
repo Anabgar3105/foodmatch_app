@@ -37,6 +37,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       appBar: AppBar(
         title: const Text('Favoritas'),
         backgroundColor: Theme.of(context).primaryColor,
+        shadowColor: Colors.black45,
       ),
       body: Consumer<FavoritesViewModel>(
         builder: (context, viewModel, child) {

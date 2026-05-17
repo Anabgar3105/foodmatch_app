@@ -179,6 +179,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
         title: const Text('Añadir Receta'),
         // centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
+        shadowColor: Colors.black45,
       ),
       body: Form(
         key: _formKey,
@@ -295,8 +296,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   icon: const Icon(Icons.add_circle),
                   color: Theme.of(context).primaryColor,
                   iconSize: 32,
-                  onPressed: () =>
-                      _showIngredientDialog(), 
+                  onPressed: () => _showIngredientDialog(),
                 ),
               ],
             ),
@@ -313,7 +313,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
               Map<String, String> ing = entry.value;
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(Icons.check_circle_outline, color: Theme.of(context).primaryColor,),
+                leading: Icon(
+                  Icons.check_circle_outline,
+                  color: Theme.of(context).primaryColor,
+                ),
                 title: Text(
                   ing['name']!,
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -323,7 +326,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon:  Icon(Icons.edit_outlined, color:Theme.of(context).hintColor),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: Theme.of(context).hintColor,
+                      ),
                       onPressed: () => _showIngredientDialog(
                         index: idx,
                         currentIngredient: ing,
@@ -341,7 +347,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
             }),
             const SizedBox(height: 24),
 
-            // PASOS 
+            // PASOS
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -353,7 +359,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   icon: const Icon(Icons.add_circle),
                   color: Theme.of(context).primaryColor,
                   iconSize: 32,
-                  onPressed: () => _showStepDialog(), 
+                  onPressed: () => _showStepDialog(),
                 ),
               ],
             ),
@@ -382,7 +388,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.edit_outlined, color: Theme.of(context).hintColor),
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        color: Theme.of(context).hintColor,
+                      ),
                       onPressed: () => _showStepDialog(
                         index: idx,
                         currentStep: step,

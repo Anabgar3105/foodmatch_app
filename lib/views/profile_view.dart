@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/views/help_view.dart';
 import 'package:provider/provider.dart';
 import '../core/app_routes.dart';
 import '../viewmodels/profile_viewmodel.dart';
@@ -25,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Perfil'),
         backgroundColor: Theme.of(context).primaryColor,
+        shadowColor: Colors.black45,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -108,7 +110,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.help_outline, 
                       iconColor: Theme.of(context).primaryColor, 
                       bgColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                      title: 'Ayuda y Soporte'
+                      title: 'Ayuda y Soporte',
+                      destination: const HelpScreen()
                     ),
                   ],
                 ),
@@ -156,7 +159,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required IconData icon, 
     required Color iconColor,
     required Color bgColor,
-    required String title
+    required String title,
+    Widget? destination, 
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -168,9 +172,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
       onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$title no está disponible en esta versión.')),
-        );
+        if (destination != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => destination),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('$title no está disponible en esta versión.')),
+          );
+        }
       },
     );
   }

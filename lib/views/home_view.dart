@@ -3,13 +3,14 @@ import 'package:flutter/material.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('FoodMatch'),
         centerTitle: true,
         backgroundColor: Theme.of(context).primaryColor,
+        shadowColor: Colors.black45,
       ),
       body: SafeArea(
         child: LayoutBuilder(
@@ -17,20 +18,21 @@ class HomeScreen extends StatelessWidget {
             return SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         '¡Hola! ¿Qué te apetece comer hoy?',
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                              fontSize: 28,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayLarge?.copyWith(fontSize: 28),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 40),
@@ -81,7 +83,8 @@ class HomeScreen extends StatelessWidget {
   }
 
   // Widget reutilizable para las tarjetas de categoría
-  Widget _buildCategoryCard(BuildContext context, {
+  Widget _buildCategoryCard(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required String backendCategory,
@@ -92,11 +95,7 @@ class HomeScreen extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: () {
-          Navigator.pushNamed(
-            context,
-            '/recipes', 
-            arguments: backendCategory, 
-          );
+          Navigator.pushNamed(context, '/recipes', arguments: backendCategory);
         },
         child: Ink(
           decoration: BoxDecoration(
@@ -113,17 +112,13 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 60,
-                color: Theme.of(context).primaryColor, 
-              ),
+              Icon(icon, size: 60, color: Theme.of(context).primaryColor),
               const SizedBox(height: 16),
               Text(
                 title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 18,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontSize: 18),
               ),
             ],
           ),

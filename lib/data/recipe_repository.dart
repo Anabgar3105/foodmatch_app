@@ -33,4 +33,15 @@ class RecipeRepository {
     final response = await api.getJsonObject(url);    
     return RecipeDetailDto.fromJson(response);
   }
+
+  // Sube la imagen y devuelve la URL de Cloudinary
+  Future<String> uploadRecipeImage(String imagePath) async {
+    final url = Uri.http(authority, '/api/media/upload'); 
+    return await api.uploadImage(url, imagePath);
+  }
+
+  Future<void> createRecipe(RecipeCreateDto recipe) async {
+    final url = Uri.http(authority, basePath);
+    await api.postJsonObject(url, recipe.toJson());
+  }
 }

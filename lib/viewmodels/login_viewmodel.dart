@@ -19,10 +19,14 @@ class LoginViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
+
+      // Bprramos el token anterior antes de iniciar sesión para evitar conflictos
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_token');
+      
       final loginData = UserLoginDto(username: username, password: password);
       final user = await _repository.login(loginData);
 
-      final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', user.token);
 
       _isLoading = false;

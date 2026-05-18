@@ -15,6 +15,7 @@ class UserResponseDto {
   final String name;
   final String surname1;
   final String? surname2;
+  final String? avatarUrl;
 
   UserResponseDto({
     required this.id,
@@ -24,6 +25,7 @@ class UserResponseDto {
     required this.name,
     required this.surname1,
     this.surname2,
+    this.avatarUrl,
   });
 
   factory UserResponseDto.fromJson(Map<String, dynamic> json) {
@@ -34,7 +36,8 @@ class UserResponseDto {
       token: json['token'] ?? '',
       name: json['name'] ?? '',
       surname1: json['surname1'] ?? '',
-      surname2: json['surname2'], 
+      surname2: json['surname2'],
+      avatarUrl: json['avatarUrl'],
     );
   }
 }
@@ -63,5 +66,23 @@ class UserRegistrationDto {
     'email': email,
     'username': username,
     'password': password,
+  };
+}
+
+class UserUpdateDto {
+  final String username;
+  final String email;
+  final String? avatarUrl;
+
+  UserUpdateDto({
+    required this.username,
+    required this.email,
+    this.avatarUrl,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'username': username,
+    'email': email,
+    'avatarUrl': avatarUrl,
   };
 }

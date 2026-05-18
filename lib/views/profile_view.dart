@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/views/edit_profile_view.dart';
 import 'package:foodmatch_app/views/help_view.dart';
 import 'package:foodmatch_app/views/settings_view.dart';
 import 'package:provider/provider.dart';
@@ -37,29 +39,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const SizedBox(height: 48),
               
               // AVATAR CON BOTÓN DE EDITAR 
-              Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  CircleAvatar(
-                    radius: 55,
-                    backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 60,
-                      color: Colors.grey[400],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.all(8),
+              Consumer<ProfileViewModel>(
+                builder: (context, viewModel, child) {
+                  return Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor, 
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey[100]!, width: 3),
+                      border: Border.all(
+                        color: Theme.of(context).primaryColor, 
+                        width: 3.5, 
+                      ),
                     ),
-                    child: const Icon(Icons.edit, color: Colors.white, size: 18),
-                  ),
-                ],
+                    child: CircleAvatar(
+                      radius: 52, 
+                      backgroundColor: Colors.white,
+                      backgroundImage: (viewModel.avatarUrl != null && viewModel.avatarUrl!.isNotEmpty)
+                          ? CachedNetworkImageProvider(viewModel.avatarUrl!)
+                          : null,
+                      child: (viewModel.avatarUrl == null || viewModel.avatarUrl!.isEmpty)
+                          ? Icon(
+                              Icons.person,
+                              size: 55,
+                              color: Colors.grey[400],
+                            )
+                          : null,
+                    ),
+                  );
+                },
               ),
+
+              
               const SizedBox(height: 16),
               
               Consumer<ProfileViewModel>(
@@ -95,7 +103,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       icon: Icons.person_outline,
                       iconColor: Colors.blue, 
                       bgColor: Colors.blue.withOpacity(0.1),
-                      title: 'Editar Perfil'
+                      title: 'Editar Perfil',
+                      destination: const EditProfileScreen(),
                     ),
                     const Divider(height: 1, indent: 64, endIndent: 20, color: Colors.black12), 
                     _buildOptionTile(

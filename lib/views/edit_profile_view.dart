@@ -16,6 +16,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _usernameController;
   late TextEditingController _emailController;
+  bool _removeAvatar = false;
 
   String? _localImagePath;
   final ImagePicker _picker = ImagePicker();
@@ -40,6 +41,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         _localImagePath = pickedFile.path;
+        _removeAvatar = false;
       });
     }
   }
@@ -53,6 +55,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _usernameController.text.trim(),
         _emailController.text.trim(),
         _localImagePath,
+        removeAvatar: _removeAvatar,
       );
 
       if (!mounted) return;
@@ -108,28 +111,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         alignment: Alignment.bottomRight,
                         children: [
                           CircleAvatar(
-                            radius: 60,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: _localImagePath != null
-                                ? FileImage(File(_localImagePath!))
-                                      as ImageProvider
-                                : (profileVM.avatarUrl != null &&
-                                      profileVM.avatarUrl!.isNotEmpty)
-                                ? CachedNetworkImageProvider(
-                                    profileVM.avatarUrl!,
-                                  )
-                                : null,
-                            child:
-                                (_localImagePath == null &&
-                                    (profileVM.avatarUrl == null ||
-                                        profileVM.avatarUrl!.isEmpty))
-                                ? Icon(
-                                    Icons.person,
-                                    size: 60,
-                                    color: Colors.grey[400],
-                                  )
-                                : null,
-                          ),
+                                radius: 60,
+                                backgroundColor: Colors.grey[200],
+                                backgroundImage: _removeAvatar ? null : (_localImagePath != null
+                                    ? FileImage(File(_localImagePath!)) as ImageProvider
+                                    : (profileVM.avatarUrl != null && profileVM.avatarUrl!.isNotEmpty)
+                                        ? CachedNetworkImageProvider(profileVM.avatarUrl!)
+                                        : null),
+                                child: (_removeAvatar || (_localImagePath == null && (profileVM.avatarUrl == null || profileVM.avatarUrl!.isEmpty)))
+                                    ? Icon(Icons.person, size: 60, color: Colors.grey[400])
+                                    : null,
+                              ),
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
@@ -142,13 +134,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               color: Colors.white,
                               size: 20,
                             ),
-                          ),
+                          ),                     
                         ],
                       ),
                     ),
+                   if (!_removeAvatar && (_localImagePath != null || (profileVM.avatarUrl != null && profileVM.avatarUrl!.isNotEmpty)))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () {
+                            setState(() {
+                              _localImagePath = null;
+                              _removeAvatar = true;
+                            });
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            child: Text(
+                              'Quitar foto de perfil',
+                              style: TextStyle(
+                                color: Colors.red[700],
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 40),
 
-                    // --- CAMPO NOMBRE DE USUARIO ---
+                    // CAMPO NOMBRE DE USUARIO
                     TextFormField(
                       controller: _usernameController,
                       decoration: InputDecoration(

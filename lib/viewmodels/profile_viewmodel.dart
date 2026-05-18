@@ -42,7 +42,7 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners(); 
   }
 
-  Future<bool> updateUserProfile(String newUsername, String newEmail, String? localImagePath) async {
+  Future<bool> updateUserProfile(String newUsername, String newEmail, String? localImagePath, {bool removeAvatar = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -50,7 +50,9 @@ class ProfileViewModel extends ChangeNotifier {
     try {
       String? finalAvatarUrl = _avatarUrl; 
 
-      if (localImagePath != null) {
+      if (removeAvatar) {
+        finalAvatarUrl = null;
+      } else if (localImagePath != null) {
         final uploadUri = Uri.parse('$baseUrl/media/upload?folder=avatars');
         finalAvatarUrl = await _apiClient.uploadImage(uploadUri, localImagePath);
       }
@@ -63,15 +65,17 @@ class ProfileViewModel extends ChangeNotifier {
 
       final profileUri = Uri.parse('$baseUrl/users/profile');
       final responseMap = await _apiClient.putJsonObject(profileUri, updateDto.toJson());
-
       final updatedUser = UserResponseDto.fromJson(responseMap);
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('auth_token', updatedUser.token); 
       await prefs.setString('auth_username', updatedUser.username);
       await prefs.setString('auth_email', updatedUser.email);
+      
       if (updatedUser.avatarUrl != null) {
         await prefs.setString('auth_avatar', updatedUser.avatarUrl!);
+      } else {
+        await prefs.remove('auth_avatar');
       }
 
       _username = updatedUser.username;
@@ -79,9 +83,9 @@ class ProfileViewModel extends ChangeNotifier {
       _avatarUrl = updatedUser.avatarUrl;
 
       _isLoading = false;
-      notifyListeners();
+      notifyListeners(); 
       return true;
-
+      
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _isLoading = false;

@@ -19,10 +19,13 @@ class RecipeViewModel extends ChangeNotifier {
   String? _errorMessage;
   List<RecipeCardDto> _recipes = [];
   final Set<int> _favoritedIds = {};
+  List<RecipeCardDto> _myRecipes = [];
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   List<RecipeCardDto> get recipes => _recipes;
+  List<RecipeCardDto> get myRecipes => _myRecipes;
+
   bool isFavorite(int id) => _favoritedIds.contains(id);
 
   Future<void> fetchRecipes({String? category, int? maxTime}) async {
@@ -89,5 +92,44 @@ class RecipeViewModel extends ChangeNotifier {
       _favoritedIds.remove(recipeId);
     }
     notifyListeners();
+  }
+
+  // 1. Obtener mis recetas personales
+  Future<void> fetchMyRecipes() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      
+       _myRecipes = await _repository.getMyRecipes();
+      
+      
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // 2. Borrar receta
+  Future<bool> deleteRecipe(int recipeId) async {
+    try {
+      
+      await _repository.deleteRecipe(recipeId);
+      
+      _myRecipes.removeWhere((recipe) => recipe.id == recipeId);
+      
+      _recipes.removeWhere((recipe) => recipe.id == recipeId); 
+      
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      notifyListeners();
+      return false;
+    }
   }
 }

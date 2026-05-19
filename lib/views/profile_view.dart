@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/views/edit_profile_view.dart';
 import 'package:foodmatch_app/views/help_view.dart';
+import 'package:foodmatch_app/views/my_recipes_view.dart';
 import 'package:foodmatch_app/views/settings_view.dart';
 import 'package:provider/provider.dart';
 import '../core/app_routes.dart';
@@ -98,6 +99,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: Column(
                   children: [
+                    _buildOptionTile(
+                          context: context, 
+                          icon: Icons.restaurant_menu_outlined,
+                          iconColor: Colors.orange, 
+                          bgColor: Colors.orange.withOpacity(0.1),
+                          title: 'Mis Recetas',
+                          destination: const MyRecipesScreen(),
+                        ),
+                    const Divider(height: 1, indent: 64, endIndent: 20, color: Colors.black12), 
+
                     _buildOptionTile(
                       context: context, 
                       icon: Icons.person_outline,

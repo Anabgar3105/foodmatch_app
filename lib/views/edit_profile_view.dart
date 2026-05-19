@@ -193,10 +193,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty)
+                        if (value == null || value.trim().isEmpty) {
                           return 'El correo no puede estar vacío';
-                        if (!value.contains('@'))
+                        }
+                        if (!value.contains('@')) {
                           return 'Formato de correo inválido';
+                        }
                         return null;
                       },
                     ),

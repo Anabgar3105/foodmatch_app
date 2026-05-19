@@ -196,4 +196,40 @@ class ApiClient {
       throw Exception('Fallo al subir imagen: $e');
     }
   }
+
+  Future<Map<String, dynamic>> putJsonObject(
+    Uri url,
+    Map<String, dynamic> body,
+  ) async {
+    try {
+      final headers = await _getHeaders();
+      final res = await _client
+          .put(url, headers: headers, body: jsonEncode(body))
+          .timeout(const Duration(seconds: 20));
+
+      if (res.statusCode != 200 && res.statusCode != 201) {
+        String errorMsg = 'Error HTTP ${res.statusCode}';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
+      }
+
+      final decoded = jsonDecode(res.body);
+
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception(
+          'Se esperaba objeto JSON, Llegó: ${decoded.runtimeType}',
+        );
+      }
+      return decoded;
+    } on TimeoutException {
+      throw Exception(
+        '¡Ups! Hay problemas de conexión con el servidor. Inténtalo de nuevo más tarde.',
+      );
+    } catch (e) {
+      throw Exception(e.toString());
+    }
+  }
 }

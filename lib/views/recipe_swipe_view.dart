@@ -92,6 +92,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
         title: const Text('FoodMatch'),
         backgroundColor: Theme.of(context).primaryColor,
         centerTitle: true,
+        shadowColor: Colors.black45,
       ),
       body: Consumer<RecipeViewModel>(
         builder: (context, viewModel, child) {

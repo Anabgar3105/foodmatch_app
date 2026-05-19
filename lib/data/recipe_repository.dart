@@ -63,4 +63,13 @@ class RecipeRepository {
     final url = Uri.http(authority, '$basePath/$id');
     await api.delete(url);
   }
+
+  Future<RecipeDetailDto> updateRecipe(int id, RecipeCreateDto recipe) async {
+    final url = Uri.http(authority, '$basePath/$id');
+    final response = await api.putJsonObject(url, recipe.toJson());
+    return RecipeDetailDto.fromJson(response);
+  }
+
+
+  
 }

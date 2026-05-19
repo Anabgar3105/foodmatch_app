@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/views/recipe_swipe_view.dart';
 import 'package:foodmatch_app/views/signup_view.dart';
+import 'package:foodmatch_app/views/add_recipe_view.dart';
 import '../views/login_view.dart';
 import '../views/main_layout.dart';
 
@@ -8,7 +9,8 @@ class AppRoutes {
   static const String login = '/login';
   static const String signup = '/signup';
   static const String main = '/main';
-  static const String swipe = '/recipes'; 
+  static const String swipe = '/recipes';
+  static const String addRecipe = '/add-recipe';
 
   static Map<String, WidgetBuilder> get routes {
     return {
@@ -16,6 +18,7 @@ class AppRoutes {
       signup: (context) => const SignupScreen(),
       main: (context) => const MainLayout(),
       swipe: (context) => const RecipeSwipeScreen(),
+      addRecipe: (context) => const AddRecipeScreen(),
     };
   }
 }

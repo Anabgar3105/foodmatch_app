@@ -1,11 +1,15 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/models/recipe.dart';
 import 'package:foodmatch_app/viewmodels/add_recipe_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class AddRecipeScreen extends StatefulWidget {
-  const AddRecipeScreen({super.key});
+  final RecipeDetailDto? recipeToEdit;
+
+  const AddRecipeScreen({super.key, this.recipeToEdit});
 
   @override
   State<AddRecipeScreen> createState() => _AddRecipeScreenState();
@@ -23,6 +27,90 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
 
   final List<Map<String, String>> _ingredients = [];
   final List<String> _steps = [];
+  String? _existingImageUrl;
+  int? _recipeId;
+  bool _isEditMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Obtener arguments de la ruta nombrada
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+      if (args != null) {
+        _loadRecipeFromArguments(args);
+      } else if (widget.recipeToEdit != null) {
+        _loadRecipeFromLegacy();
+      }
+    });
+  }
+
+  void _loadRecipeFromArguments(Map<String, dynamic> args) {
+    _recipeId = args['recipeId'];
+    _isEditMode = true;
+
+    final recipe = args['recipeToEdit'] as RecipeDetailDto?;
+    if (recipe != null) {
+      _titleController.text = recipe.title;
+      _timeController.text = recipe.preparationTime.toString();
+      _selectedCategory = recipe.category;
+      _existingImageUrl = recipe.image ?? '';
+
+      // Usar ingredientes de los arguments o de la receta
+      final ingredientsList =
+          args['ingredients'] as List<Map<String, String>>? ??
+          recipe.ingredients
+              .map((i) => {'name': i.name, 'quantity': i.quantity})
+              .toList();
+      final stepsList =
+          args['steps'] as List<String>? ??
+          recipe.elaborationSteps.map((s) => s.description).toList();
+
+      setState(() {
+        _ingredients.clear();
+        _ingredients.addAll(ingredientsList);
+        _steps.clear();
+        _steps.addAll(stepsList);
+      });
+    }
+  }
+
+  void _loadRecipeFromLegacy() {
+    final recipe = widget.recipeToEdit!;
+    _titleController.text = recipe.title;
+    _timeController.text = recipe.preparationTime.toString();
+    _selectedCategory = recipe.category;
+    _existingImageUrl = recipe.image ?? '';
+    _recipeId = recipe.id;
+    _isEditMode = true;
+
+    // Cargar ingredientes y pasos
+    setState(() {
+      _ingredients.clear();
+      _ingredients.addAll(
+        recipe.ingredients.map((i) => {'name': i.name, 'quantity': i.quantity}),
+      );
+      _steps.clear();
+      _steps.addAll(recipe.elaborationSteps.map((s) => s.description));
+    });
+  }
+
+  void _resetForm() {
+    setState(() {
+      _titleController.clear();
+      _timeController.clear();
+      _selectedCategory = 'PLATOS_COMPLETOS';
+      _imageFile = null;
+      _existingImageUrl = null;
+      _ingredients.clear();
+      _steps.clear();
+      _isEditMode = false;
+      _recipeId = null;
+    });
+  }
 
   @override
   void dispose() {
@@ -176,8 +264,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Añadir Receta'),
-        // centerTitle: true,
+        title: Text(_isEditMode ? 'Editar Receta' : 'Añadir Receta'),
         backgroundColor: Theme.of(context).primaryColor,
         shadowColor: Colors.black45,
       ),
@@ -205,6 +292,29 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                         borderRadius: BorderRadius.circular(18),
                         child: Image.file(_imageFile!, fit: BoxFit.cover),
                       )
+                    : (_existingImageUrl != null &&
+                          _existingImageUrl!.isNotEmpty)
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(18),
+                        child: CachedNetworkImage(
+                          imageUrl: _existingImageUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Theme.of(
+                              context,
+                            ).primaryColor.withOpacity(0.1),
+                            child: const Icon(Icons.broken_image, size: 50),
+                          ),
+                        ),
+                      )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -225,7 +335,19 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                       ),
               ),
             ),
-            const SizedBox(height: 32),
+            // if (_isEditMode)
+            //   Padding(
+            //     padding: const EdgeInsets.only(top: 8.0),
+            //     child: Text(
+            //       'Nota: Si cambias la imagen, será subida automáticamente',
+            //       style: TextStyle(
+            //         color: Colors.grey[600],
+            //         fontSize: 12,
+            //         fontStyle: FontStyle.italic,
+            //       ),
+            //     ),
+            //   ),
+            const SizedBox(height: 24),
 
             // DATOS BÁSICOS
             Text(
@@ -406,7 +528,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                 ),
               );
             }),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
 
             //BOTÓN DE ENVIAR
             Consumer<AddRecipeViewModel>(
@@ -416,13 +538,12 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                       ? null
                       : () async {
                           if (_formKey.currentState!.validate()) {
-                            if (_ingredients.isEmpty ||
-                                _steps.isEmpty ||
-                                _imageFile == null) {
+                            // Validaciones específicas
+                            if (_ingredients.isEmpty || _steps.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text(
-                                    'Por favor, añade una foto, ingredientes y pasos.',
+                                    'Por favor, añade ingredientes y pasos.',
                                   ),
                                   backgroundColor: Colors.red,
                                 ),
@@ -430,24 +551,70 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                               return;
                             }
 
-                            final success = await viewModel.saveRecipe(
-                              title: _titleController.text.trim(),
-                              time: int.parse(_timeController.text.trim()),
-                              category: _selectedCategory,
-                              imagePath: _imageFile!.path,
-                              ingredients: _ingredients,
-                              steps: _steps,
-                            );
+                            // Si es creación, requiere imagen
+                            if (!_isEditMode && _imageFile == null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Por favor, añade una foto para la receta.',
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                              return;
+                            }
+
+                            bool success;
+                            if (!_isEditMode) {
+                              // MODO CREAR
+                              success = await viewModel.saveRecipe(
+                                title: _titleController.text.trim(),
+                                time: int.parse(_timeController.text.trim()),
+                                category: _selectedCategory,
+                                imagePath: _imageFile!.path,
+                                ingredients: _ingredients,
+                                steps: _steps,
+                              );
+                            } else {
+                              // MODO EDITAR
+                              success = await viewModel.updateRecipe(
+                                recipeId: _recipeId!,
+                                title: _titleController.text.trim(),
+                                preparationTime: int.parse(
+                                  _timeController.text.trim(),
+                                ),
+                                category: _selectedCategory,
+                                localImagePath: _imageFile?.path,
+                                existingImageUrl: _existingImageUrl,
+                                ingredients: _ingredients,
+                                steps: _steps,
+                              );
+                            }
 
                             if (success && context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('¡Receta creada con éxito!'),
+                                SnackBar(
+                                  content: Text(
+                                    _isEditMode
+                                        ? '¡Receta actualizada con éxito!'
+                                        : '¡Receta creada con éxito!',
+                                  ),
                                   backgroundColor: Colors.green,
                                 ),
                               );
-                              // Limpiamos el formulario reseteando la pantalla
-                              Navigator.pushReplacementNamed(context, '/main');
+
+                              if (Navigator.canPop(context)) {
+                                Navigator.of(context).pop(true);
+                              } else {
+                                Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                  () {
+                                    if (context.mounted) {
+                                      _resetForm();
+                                    }
+                                  },
+                                );
+                              }
                             } else if (viewModel.errorMessage != null &&
                                 context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -461,9 +628,9 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                         },
                   child: viewModel.isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Guardar Receta',
-                          style: TextStyle(fontSize: 16),
+                      : Text(
+                          _isEditMode ? 'Actualizar Receta' : 'Guardar Receta',
+                          style: const TextStyle(fontSize: 16),
                         ),
                 );
               },

@@ -59,7 +59,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 return [
                   SliverAppBar(
                     leading: IconButton(
-                      icon: const Icon(Icons.arrow_back,color: Colors.white,),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     expandedHeight: 340.0,
@@ -67,6 +67,42 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     centerTitle: false,
                     backgroundColor: Theme.of(context).primaryColor,
                     actions: [
+                      // Botón de editar
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.black26,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: () {
+                            if (recipe != null) {
+                              final ingredients = recipe.ingredients
+                                  .map(
+                                    (i) => {
+                                      'name': i.name,
+                                      'quantity': i.quantity,
+                                    },
+                                  )
+                                  .toList();
+                              final steps = recipe.elaborationSteps
+                                  .map((s) => s.description)
+                                  .toList();
+
+                              Navigator.of(context).pushNamed(
+                                '/add-recipe',
+                                arguments: {
+                                  'recipeToEdit': recipe,
+                                  'ingredients': ingredients,
+                                  'steps': steps,
+                                  'recipeId': widget.recipeId,
+                                },
+                              );
+                            }
+                          },
+                        ),
+                      ),
                       Consumer<RecipeViewModel>(
                         builder: (context, recipeVm, _) {
                           final isFav = recipeVm.isFavorite(widget.recipeId);

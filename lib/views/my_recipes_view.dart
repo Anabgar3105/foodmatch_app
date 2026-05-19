@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/views/add_recipe_view.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../viewmodels/recipe_viewmodel.dart';
+import '../viewmodels/recipe_detail_viewmodel.dart';
 import '../models/recipe.dart'; // O donde tengas RecipeCardDto
 import 'recipe_detail_view.dart';
 
@@ -206,6 +208,60 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                   ],
                 ),
               ),
+            ),
+            IconButton(
+              icon: Icon(
+                Icons.edit_outlined,
+                color: Theme.of(context).hintColor,
+              ),
+              onPressed: () async {
+                if (!context.mounted) return;
+
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (ctx) => const Dialog(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Cargando detalles de la receta...'),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+
+                await context.read<RecipeDetailViewModel>().fetchRecipeDetail(
+                  recipe.id,
+                );
+
+                if (!context.mounted) return;
+                Navigator.pop(context);
+
+                final recipeDetail = context
+                    .read<RecipeDetailViewModel>()
+                    .recipe;
+
+                if (recipeDetail != null && context.mounted) {
+                  // Navegamos pasando la receta detallada al constructor
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          AddRecipeScreen(recipeToEdit: recipeDetail),
+                    ),
+                  );
+
+                  // Si la edición fue exitosa, refrescamos la lista
+                  if (result == true && context.mounted) {
+                    context.read<RecipeViewModel>().fetchMyRecipes();
+                  }
+                }
+              },
             ),
             // Botón de papelera en la derecha
             IconButton(

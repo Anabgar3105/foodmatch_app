@@ -122,7 +122,7 @@ class RecipeDetailDto {
     return RecipeDetailDto(
       id: json['id'],
       title: json['title'] ?? '',
-      image: json['image'] ??'',
+      image: json['image'] ?? '',
       category: json['category'] ?? '',
       preparationTime: json['preparationTime'] ?? 0,
       ingredients:
@@ -157,14 +157,17 @@ class RecipeCreateDto {
   });
 
   Map<String, dynamic> toJson() => {
-        'title': title,
-        'preparationTime': preparationTime,
-        'category': category,
-        'image': image,
-        'ingredients': ingredients,
-        'steps': elaborationSteps.asMap().entries.map((entry) => {
-          'stepNum': entry.key + 1,
-          'instruction': entry.value['description']
-        }).toList(),
+    'title': title,
+    'preparationTime': preparationTime,
+    'category': category,
+    'image': image,
+    'ingredients': ingredients,
+    'steps': elaborationSteps.asMap().entries.map((entry) {
+      final step = entry.value;
+      return {
+        'stepNum': entry.key + 1,
+        'instruction': step['instruction'] ?? step['description'] ?? '',
       };
+    }).toList(),
+  };
 }

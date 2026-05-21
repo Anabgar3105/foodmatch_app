@@ -77,4 +77,9 @@ class RecipeDetailViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  void updateRecipeFromEdit(RecipeDetailDto updatedRecipe) {
+    _recipe = updatedRecipe;
+    notifyListeners();
+  }
 }

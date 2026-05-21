@@ -15,7 +15,8 @@ class AddRecipeViewModel extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
+  RecipeDetailDto? get recipe => _recipe;
+  
   Future<bool> saveRecipe({
     required String title,
     required int time,

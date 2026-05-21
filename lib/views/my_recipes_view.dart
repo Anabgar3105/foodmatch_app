@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../viewmodels/recipe_viewmodel.dart';
 import '../viewmodels/recipe_detail_viewmodel.dart';
-import '../models/recipe.dart'; // O donde tengas RecipeCardDto
+import '../viewmodels/favorites_viewmodel.dart';
+import '../models/recipe.dart';
 import 'recipe_detail_view.dart';
 
 class MyRecipesScreen extends StatefulWidget {
@@ -156,9 +157,9 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
+        onTap: () async {
           // Navegamos al detalle de la receta al tocar la tarjeta
-          Navigator.push(
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RecipeDetailScreen(
@@ -168,6 +169,11 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
               ),
             ),
           );
+
+          // Si se editó la receta, recargar la lista
+          if (result == true && context.mounted) {
+            context.read<RecipeViewModel>().fetchMyRecipes();
+          }
         },
         child: Row(
           children: [
@@ -248,17 +254,23 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
 
                 if (recipeDetail != null && context.mounted) {
                   // Navegamos pasando la receta detallada al constructor
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          AddRecipeScreen(recipeToEdit: recipeDetail),
-                    ),
-                  );
+                  final result =
+                      await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  AddRecipeScreen(recipeToEdit: recipeDetail),
+                            ),
+                          )
+                          as dynamic;
 
-                  // Si la edición fue exitosa, refrescamos la lista
-                  if (result == true && context.mounted) {
+                  // Si la edición fue exitosa, refrescamos la lista y favoritas
+                  if ((result == true || result is RecipeDetailDto) &&
+                      context.mounted) {
                     context.read<RecipeViewModel>().fetchMyRecipes();
+                    context.read<FavoritesViewModel>().updateFavoriteRecipe(
+                      recipe.id,
+                    );
                   }
                 }
               },

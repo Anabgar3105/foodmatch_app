@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/core/app_routes.dart';
 import 'package:foodmatch_app/models/recipe.dart';
 import 'package:foodmatch_app/viewmodels/add_recipe_viewmodel.dart';
 import 'package:image_picker/image_picker.dart';
@@ -603,17 +604,34 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                                 ),
                               );
 
-                              if (Navigator.canPop(context)) {
-                                Navigator.of(context).pop(true);
+                              if (_isEditMode && viewModel.recipe != null) {
+                                // En modo edición, retornar según el origen
+                                // Si tiene _recipeId, viene de la ruta nombrada (/add-recipe)
+                                if (_recipeId != null) {
+                                  // Retornar la receta actualizada
+                                  if (Navigator.canPop(context)) {
+                                    Navigator.of(context).pop(viewModel.recipe);
+                                  }
+                                } //else {
+                                // Viene del constructor MyRecipesScreen
+                                // if (Navigator.canPop(context)) {
+                                //   Navigator.of(context).pop(true);
+                                // }
+                                //}
                               } else {
-                                Future.delayed(
-                                  const Duration(milliseconds: 100),
-                                  () {
-                                    if (context.mounted) {
-                                      _resetForm();
-                                    }
-                                  },
-                                );
+                                // En modo creación
+                                if (Navigator.canPop(context)) {
+                                  Navigator.of(context).pop(true);
+                                } else {
+                                  Future.delayed(
+                                    const Duration(milliseconds: 100),
+                                    () {
+                                      if (context.mounted) {
+                                        _resetForm();
+                                      }
+                                    },
+                                  );
+                                }
                               }
                             } else if (viewModel.errorMessage != null &&
                                 context.mounted) {

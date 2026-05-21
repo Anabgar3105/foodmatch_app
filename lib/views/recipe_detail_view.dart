@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/models/recipe.dart';
 import 'package:foodmatch_app/viewmodels/favorites_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
 import 'package:provider/provider.dart';
@@ -22,6 +23,8 @@ class RecipeDetailScreen extends StatefulWidget {
 }
 
 class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
+  bool _wasEdited = false;
+
   @override
   void initState() {
     super.initState();
@@ -59,14 +62,79 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 return [
                   SliverAppBar(
                     leading: IconButton(
-                      icon: const Icon(Icons.arrow_back,color: Colors.white,),
-                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () =>
+                          Navigator.of(context).pop(_wasEdited ? true : null),
                     ),
                     expandedHeight: 340.0,
                     pinned: true,
                     centerTitle: false,
                     backgroundColor: Theme.of(context).primaryColor,
                     actions: [
+                      // Botón de editar
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: const BoxDecoration(
+                          color: Colors.black26,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white),
+                          onPressed: () async {
+                            if (recipe != null) {
+                              final ingredients = recipe.ingredients
+                                  .map(
+                                    (i) => {
+                                      'name': i.name,
+                                      'quantity': i.quantity,
+                                    },
+                                  )
+                                  .toList();
+                              final steps = recipe.elaborationSteps
+                                  .map((s) => s.description)
+                                  .toList();
+
+                              final updatedRecipe =
+                                  await Navigator.of(context).pushNamed(
+                                        '/add-recipe',
+                                        arguments: {
+                                          'recipeToEdit': recipe,
+                                          'ingredients': ingredients,
+                                          'steps': steps,
+                                          'recipeId': widget.recipeId,
+                                        },
+                                      )
+                                      as RecipeDetailDto?;
+
+                              // Si se retornó una receta actualizada
+                              if (updatedRecipe != null && context.mounted) {
+                                // Limpiar caché de la imagen anterior si cambió
+                                if (recipe != null &&
+                                    recipe.image != updatedRecipe.image) {
+                                  await CachedNetworkImage.evictFromCache(
+                                    recipe.image ?? '',
+                                  );
+                                }
+
+                                // Actualizar la receta en el viewmodel
+                                context
+                                    .read<RecipeDetailViewModel>()
+                                    .updateRecipeFromEdit(updatedRecipe);
+
+                                // Actualizar la receta en favoritas si está ahí
+                                context
+                                    .read<FavoritesViewModel>()
+                                    .updateFavoriteRecipe(widget.recipeId);
+
+                                // Marcar que fue editada
+                                setState(() {
+                                  _wasEdited = true;
+                                });
+                              }
+                            }
+                          },
+                        ),
+                      ),
                       Consumer<RecipeViewModel>(
                         builder: (context, recipeVm, _) {
                           final isFav = recipeVm.isFavorite(widget.recipeId);

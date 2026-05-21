@@ -11,10 +11,12 @@ class AddRecipeViewModel extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  RecipeDetailDto? _recipe;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-
+  RecipeDetailDto? get recipe => _recipe;
+  
   Future<bool> saveRecipe({
     required String title,
     required int time,
@@ -54,4 +56,50 @@ class AddRecipeViewModel extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> updateRecipe({
+    required int recipeId,
+    required String title,
+    required int preparationTime,
+    required String category,
+    required String? localImagePath,
+    required String? existingImageUrl,
+    required List<Map<String, String>> ingredients,
+    required List<String> steps,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      String? finalImageUrl = existingImageUrl;
+
+      // Si hay una nueva imagen, subirla
+      if (localImagePath != null) {
+        finalImageUrl = await _repository.uploadRecipeImage(localImagePath);
+      }
+
+      final updatedRecipe = RecipeCreateDto(
+        title: title,
+        preparationTime: preparationTime,
+        category: category,
+        image: finalImageUrl ?? '',
+        ingredients: ingredients,
+        elaborationSteps: steps.map((s) => {'instruction': s}).toList(),
+      );
+
+      // Actualizar receta en el backend
+      _recipe = await _repository.updateRecipe(recipeId, updatedRecipe);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
+

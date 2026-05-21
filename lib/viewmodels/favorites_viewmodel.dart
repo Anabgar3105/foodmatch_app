@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/recipe.dart';
 import '../data/favorite_repository.dart';
+import '../data/recipe_repository.dart';
 import '../data/api_client.dart';
 
 class FavoritesViewModel extends ChangeNotifier {
   final FavoriteRepository _repository;
+  final RecipeRepository _recipeRepository;
 
-  FavoritesViewModel({FavoriteRepository? repository}) 
-      : _repository = repository ?? FavoriteRepository(ApiClient());
+  FavoritesViewModel({
+    FavoriteRepository? repository,
+    RecipeRepository? recipeRepository,
+  }) : _repository = repository ?? FavoriteRepository(ApiClient()),
+       _recipeRepository = recipeRepository ?? RecipeRepository(ApiClient());
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -20,7 +25,7 @@ class FavoritesViewModel extends ChangeNotifier {
   Future<void> fetchFavorites() async {
     _isLoading = true;
     _errorMessage = null;
-    Future.microtask(() => notifyListeners()); 
+    Future.microtask(() => notifyListeners());
 
     try {
       _favorites = await _repository.getFavorites();
@@ -40,6 +45,26 @@ class FavoritesViewModel extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       debugPrint('Error al borrar favorito: $e');
+    }
+  }
+
+  Future<void> updateFavoriteRecipe(int recipeId) async {
+    try {
+      final index = _favorites.indexWhere((recipe) => recipe.id == recipeId);
+      if (index != -1) {
+        // Recargar la receta actualizada desde el servidor
+        final updatedRecipe = await _recipeRepository.getRecipeDetail(recipeId);
+        _favorites[index] = RecipeCardDto(
+          id: updatedRecipe.id,
+          title: updatedRecipe.title,
+          preparationTime: updatedRecipe.preparationTime,
+          category: updatedRecipe.category,
+          image: updatedRecipe.image,
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error al actualizar favorito: $e');
     }
   }
 }

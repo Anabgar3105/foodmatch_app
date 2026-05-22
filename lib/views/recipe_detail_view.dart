@@ -109,8 +109,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                               // Si se retornó una receta actualizada
                               if (updatedRecipe != null && context.mounted) {
                                 // Limpiar caché de la imagen anterior si cambió
-                                if (recipe != null &&
-                                    recipe.image != updatedRecipe.image) {
+                                if (recipe.image != updatedRecipe.image) {
                                   await CachedNetworkImage.evictFromCache(
                                     recipe.image ?? '',
                                   );

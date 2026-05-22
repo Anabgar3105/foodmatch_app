@@ -174,30 +174,7 @@ class ApiClient {
     }
   }
 
-  Future<String> uploadImage(Uri url, String filePath) async {
-    try {
-      final headers = await _getHeaders();
-      
-      var request = http.MultipartRequest('POST', url);
-      request.headers.addAll(headers);
-      
-      request.files.add(await http.MultipartFile.fromPath('file', filePath));
-
-      final streamedResponse = await _client.send(request).timeout(const Duration(seconds: 30));
-      final response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Error al subir la imagen: ${response.statusCode}');
-      }
-            final decoded = jsonDecode(response.body);
-      return decoded['url']; 
-      
-    } catch (e) {
-      throw Exception('Fallo al subir imagen: $e');
-    }
-  }
-
-  Future<Map<String, dynamic>> putJsonObject(
+   Future<Map<String, dynamic>> putJsonObject(
     Uri url,
     Map<String, dynamic> body,
   ) async {
@@ -230,6 +207,29 @@ class ApiClient {
       );
     } catch (e) {
       throw Exception(e.toString());
+    }
+  }
+
+  Future<String> uploadImage(Uri url, String filePath) async {
+    try {
+      final headers = await _getHeaders();
+      
+      var request = http.MultipartRequest('POST', url);
+      request.headers.addAll(headers);
+      
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+      final streamedResponse = await _client.send(request).timeout(const Duration(seconds: 30));
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Error al subir la imagen: ${response.statusCode}');
+      }
+            final decoded = jsonDecode(response.body);
+      return decoded['url']; 
+      
+    } catch (e) {
+      throw Exception('Fallo al subir imagen: $e');
     }
   }
 }

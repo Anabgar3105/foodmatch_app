@@ -127,19 +127,21 @@ class _SignupScreenState extends State<SignupScreen> {
                         prefixIcon: Icon(Icons.lock_outline),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) {
-                          return 'Campo obligatorio';
-                        }
-                        if (v.length < 8) {
-                          return 'Debe tener al menos 8 caracteres';
-                        }
-                        if (!v.contains(RegExp(r'[A-Z]'))) {
-                          return 'Debe contener al menos una letra mayúscula';
-                        }
-                        if (!v.contains(RegExp(r'[0-9]'))) {
-                          return 'Debe contener al menos un número';
-                        }
-                        return null;
+                         if (v!.isEmpty) return 'Requerida';
+                          if (v.length < 8) return 'Debe tener al menos 8 caracteres';
+                          if (!RegExp(r'[A-Z]').hasMatch(v)) {
+                            return 'Debe contener una letra mayúscula';
+                          }
+                          if (!RegExp(r'[a-z]').hasMatch(v)) {
+                            return 'Debe contener una letra minúscula';
+                          }
+                          if (!RegExp(r'[0-9]').hasMatch(v)) {
+                            return 'Debe contener un número';
+                          }
+                          if (!RegExp(r'[!@#$%^&*(),.?\":{}|<>_/]').hasMatch(v)) {
+                            return 'Debe contener un carácter especial';
+                          }
+                          return null;
                       },
                     ),
                     const SizedBox(height: 32),

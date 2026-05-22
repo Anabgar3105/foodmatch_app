@@ -7,7 +7,7 @@ class ProfileViewModel extends ChangeNotifier {
   String _username = 'Cargando...';
   String _email = '';
   String _fullName = '';
-  String? _avatarUrl; 
+  String? _avatarUrl;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -19,42 +19,53 @@ class ProfileViewModel extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String? get avatarUrl {
     if (_avatarUrl == null || _avatarUrl!.isEmpty) return null;
-  
+
     String finalUrl = _avatarUrl!;
 
     if (finalUrl.contains('cloudinary.com') && !finalUrl.contains('q_auto')) {
-      finalUrl = finalUrl.replaceFirst('/upload/', '/upload/q_auto,f_auto,w_200,c_fill/');
+      finalUrl = finalUrl.replaceFirst(
+        '/upload/',
+        '/upload/q_auto,f_auto,w_200,c_fill/',
+      );
     }
 
     return finalUrl;
   }
 
   final ApiClient _apiClient = ApiClient();
-  final String baseUrl = 'http://10.0.2.2:8080/api'; 
+  final String baseUrl = 'http://10.0.2.2:8080/api';
 
   Future<void> loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
     _username = prefs.getString('auth_username') ?? 'Chef FoodMatch';
     _email = prefs.getString('auth_email') ?? 'usuario@foodmatch.com';
     _fullName = prefs.getString('auth_full_name') ?? 'Chef FoodMatch';
-    _avatarUrl = prefs.getString('auth_avatar'); 
+    _avatarUrl = prefs.getString('auth_avatar');
 
-    notifyListeners(); 
+    notifyListeners();
   }
 
-  Future<bool> updateUserProfile(String newUsername, String newEmail, String? localImagePath, {bool removeAvatar = false}) async {
+  Future<bool> updateUserProfile(
+    String newUsername,
+    String newEmail,
+    String? localImagePath, {
+    bool removeAvatar = false,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      String? finalAvatarUrl = _avatarUrl; 
+      String? finalAvatarUrl = _avatarUrl;
 
       if (removeAvatar) {
         finalAvatarUrl = null;
       } else if (localImagePath != null) {
         final uploadUri = Uri.parse('$baseUrl/media/upload?folder=avatars');
-        finalAvatarUrl = await _apiClient.uploadImage(uploadUri, localImagePath);
+        finalAvatarUrl = await _apiClient.uploadImage(
+          uploadUri,
+          localImagePath,
+        );
       }
 
       final updateDto = UserUpdateDto(
@@ -64,14 +75,17 @@ class ProfileViewModel extends ChangeNotifier {
       );
 
       final profileUri = Uri.parse('$baseUrl/users/profile');
-      final responseMap = await _apiClient.putJsonObject(profileUri, updateDto.toJson());
+      final responseMap = await _apiClient.putJsonObject(
+        profileUri,
+        updateDto.toJson(),
+      );
       final updatedUser = UserResponseDto.fromJson(responseMap);
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('auth_token', updatedUser.token); 
+      await prefs.setString('auth_token', updatedUser.token);
       await prefs.setString('auth_username', updatedUser.username);
       await prefs.setString('auth_email', updatedUser.email);
-      
+
       if (updatedUser.avatarUrl != null) {
         await prefs.setString('auth_avatar', updatedUser.avatarUrl!);
       } else {
@@ -83,7 +97,34 @@ class ProfileViewModel extends ChangeNotifier {
       _avatarUrl = updatedUser.avatarUrl;
 
       _isLoading = false;
-      notifyListeners(); 
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final url = Uri.parse('$baseUrl/users/password');
+      final payload = PasswordChangeDto(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+      ).toJson();
+
+      await _apiClient.putJsonObject(url, payload);
+      _isLoading = false;
+      notifyListeners();
       return true;
       
     } catch (e) {
@@ -96,13 +137,13 @@ class ProfileViewModel extends ChangeNotifier {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     await prefs.remove('auth_token');
     await prefs.remove('auth_username');
     await prefs.remove('auth_email');
     await prefs.remove('auth_full_name');
-    await prefs.remove('auth_avatar'); 
-    
+    await prefs.remove('auth_avatar');
+
     notifyListeners();
   }
 }

@@ -195,7 +195,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             padding: EdgeInsets.only(
                               left: isCollapsed ? 56 : 16,
                               bottom: 12,
-                              right: isCollapsed ? 80 : 16,
+                              right: isCollapsed ? 128 : 16,
                             ),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -204,7 +204,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 Text(
                                   displayTitle,
                                   textAlign: TextAlign.left,
-                                  maxLines: isCollapsed ? 1 : 3,
+                                  maxLines: isCollapsed ? 1 : 4,
                                   overflow: TextOverflow.ellipsis,
                                   style: const TextStyle(
                                     color: Colors.white,

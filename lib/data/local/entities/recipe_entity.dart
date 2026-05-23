@@ -4,7 +4,7 @@ import 'package:floor/floor.dart';
 class RecipeEntity {
   @primaryKey
   final int id;
-  
+
   final String title;
   final String category;
   final int preparationTime;

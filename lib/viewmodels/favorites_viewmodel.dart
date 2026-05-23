@@ -13,10 +13,12 @@ class FavoritesViewModel extends ChangeNotifier {
     FavoriteRepository? repository,
     RecipeRepository? recipeRepository,
     AppDatabase? database,
-  }) : _repository = repository ??
+  }) : _repository =
+           repository ??
            FavoriteRepository(
              ApiClient(),
-             recipeRepository ?? RecipeRepository(ApiClient(), localDb: database),
+             recipeRepository ??
+                 RecipeRepository(ApiClient(), localDb: database),
              localDb: database,
            ),
        _recipeRepository =

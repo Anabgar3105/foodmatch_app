@@ -7,11 +7,9 @@ import '../data/api_client.dart';
 class RecipeDetailViewModel extends ChangeNotifier {
   final RecipeRepository _repository;
 
-  RecipeDetailViewModel({
-    RecipeRepository? repository,
-    AppDatabase? database,
-  }) : _repository =
-           repository ?? RecipeRepository(ApiClient(), localDb: database);
+  RecipeDetailViewModel({RecipeRepository? repository, AppDatabase? database})
+    : _repository =
+          repository ?? RecipeRepository(ApiClient(), localDb: database);
 
   bool _isLoading = false;
   String? _errorMessage;

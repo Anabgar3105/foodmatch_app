@@ -13,8 +13,10 @@ class RecipeViewModel extends ChangeNotifier {
     RecipeRepository? repository,
     FavoriteRepository? favoriteRepository,
     AppDatabase? database,
-  }) : _repository = repository ?? RecipeRepository(ApiClient(), localDb: database),
-       _favoriteRepository = favoriteRepository ??
+  }) : _repository =
+           repository ?? RecipeRepository(ApiClient(), localDb: database),
+       _favoriteRepository =
+           favoriteRepository ??
            FavoriteRepository(
              ApiClient(),
              repository ?? RecipeRepository(ApiClient(), localDb: database),
@@ -46,10 +48,9 @@ class RecipeViewModel extends ChangeNotifier {
       );
 
       final userFavorites = await _favoriteRepository.getFavorites();
-      
+
       _favoritedIds.clear();
       _favoritedIds.addAll(userFavorites.map((recipe) => recipe.id));
-
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _recipes = [];
@@ -67,7 +68,7 @@ class RecipeViewModel extends ChangeNotifier {
     } else {
       _favoritedIds.add(recipeId);
     }
-    notifyListeners(); 
+    notifyListeners();
 
     try {
       if (!wasFavorite) {
@@ -76,18 +77,17 @@ class RecipeViewModel extends ChangeNotifier {
         await _favoriteRepository.removeFavorite(recipeId);
       }
       return true;
-      
     } catch (e) {
       debugPrint('Error del backend: $e');
-      
+
       if (wasFavorite) {
         _favoritedIds.add(recipeId);
       } else {
         _favoritedIds.remove(recipeId);
       }
-      notifyListeners(); 
-      
-      return false; 
+      notifyListeners();
+
+      return false;
     }
   }
 
@@ -107,10 +107,8 @@ class RecipeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      
-       _myRecipes = await _repository.getMyRecipes();
-      
-      
+      _myRecipes = await _repository.getMyRecipes();
+
       _isLoading = false;
       notifyListeners();
     } catch (e) {
@@ -123,13 +121,12 @@ class RecipeViewModel extends ChangeNotifier {
   // 2. Borrar receta
   Future<bool> deleteRecipe(int recipeId) async {
     try {
-      
       await _repository.deleteRecipe(recipeId);
-      
+
       _myRecipes.removeWhere((recipe) => recipe.id == recipeId);
-      
-      _recipes.removeWhere((recipe) => recipe.id == recipeId); 
-      
+
+      _recipes.removeWhere((recipe) => recipe.id == recipeId);
+
       notifyListeners();
       return true;
     } catch (e) {

@@ -11,10 +11,7 @@ import 'dao/step_dao.dart';
 
 part 'app_database.g.dart';
 
-@Database(
-  version: 1,
-  entities: [RecipeEntity, IngredientEntity, StepEntity],
-)
+@Database(version: 1, entities: [RecipeEntity, IngredientEntity, StepEntity])
 abstract class AppDatabase extends FloorDatabase {
   RecipeDao get recipeDao;
   IngredientDao get ingredientDao;

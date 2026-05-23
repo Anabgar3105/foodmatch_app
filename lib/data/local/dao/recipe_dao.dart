@@ -27,11 +27,18 @@ abstract class RecipeDao {
   @Query('SELECT * FROM RecipeEntity WHERE category = :category ORDER BY title')
   Future<List<RecipeEntity>> getRecipesByCategory(String category);
 
-  @Query('SELECT * FROM RecipeEntity WHERE preparationTime <= :maxTime ORDER BY preparationTime')
+  @Query(
+    'SELECT * FROM RecipeEntity WHERE preparationTime <= :maxTime ORDER BY preparationTime',
+  )
   Future<List<RecipeEntity>> getRecipesByMaxTime(int maxTime);
 
-  @Query('SELECT * FROM RecipeEntity WHERE category = :category AND preparationTime <= :maxTime ORDER BY preparationTime')
-  Future<List<RecipeEntity>> getRecipesByCategoryAndTime(String category, int maxTime);
+  @Query(
+    'SELECT * FROM RecipeEntity WHERE category = :category AND preparationTime <= :maxTime ORDER BY preparationTime',
+  )
+  Future<List<RecipeEntity>> getRecipesByCategoryAndTime(
+    String category,
+    int maxTime,
+  );
 
   @Query('SELECT * FROM RecipeEntity WHERE isFavorite = 1 ORDER BY title')
   Future<List<RecipeEntity>> getFavorites();

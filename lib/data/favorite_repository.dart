@@ -10,17 +10,13 @@ class FavoriteRepository {
   final String authority = '10.0.2.2:8080';
   final String basePath = '/api/favorites';
 
-  FavoriteRepository(
-    this.api,
-    this.recipeRepository, {
-    this.localDb,
-  });
+  FavoriteRepository(this.api, this.recipeRepository, {this.localDb});
 
   Future<void> addFavorite(int recipeId) async {
     try {
       final url = Uri.http(authority, '$basePath/$recipeId');
       await api.postVoid(url);
-      
+
       // Actualizar BD local
       await recipeRepository.markFavoriteLocally(recipeId);
     } catch (e) {
@@ -37,10 +33,10 @@ class FavoriteRepository {
       final recipes = jsonList
           .map((json) => RecipeCardDto.fromJson(json as Map<String, dynamic>))
           .toList();
-      
+
       // Sincronizar con BD local
       await _syncFavoritesLocally(recipes);
-      
+
       return recipes;
     } catch (e) {
       // Fallback a BD local si hay error de conexión
@@ -51,10 +47,10 @@ class FavoriteRepository {
   /// Sincroniza favoritos con BD local
   Future<void> _syncFavoritesLocally(List<RecipeCardDto> favorites) async {
     if (localDb == null) return;
-    
+
     final favoriteIds = favorites.map((r) => r.id).toSet();
     final allRecipes = await localDb!.recipeDao.getAllRecipes();
-    
+
     // Actualizar estados de favoritos
     for (final recipe in allRecipes) {
       final isFavorite = favoriteIds.contains(recipe.id);
@@ -68,7 +64,7 @@ class FavoriteRepository {
     try {
       final url = Uri.http(authority, '$basePath/$recipeId');
       await api.delete(url);
-      
+
       // Actualizar BD local
       await recipeRepository.unmarkFavoriteLocally(recipeId);
     } catch (e) {

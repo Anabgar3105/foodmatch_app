@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/data/local/app_database.dart';
 import '../models/recipe.dart';
 import '../data/favorite_repository.dart';
 import '../data/recipe_repository.dart';
@@ -11,8 +12,15 @@ class FavoritesViewModel extends ChangeNotifier {
   FavoritesViewModel({
     FavoriteRepository? repository,
     RecipeRepository? recipeRepository,
-  }) : _repository = repository ?? FavoriteRepository(ApiClient()),
-       _recipeRepository = recipeRepository ?? RecipeRepository(ApiClient());
+    AppDatabase? database,
+  }) : _repository = repository ??
+           FavoriteRepository(
+             ApiClient(),
+             recipeRepository ?? RecipeRepository(ApiClient(), localDb: database),
+             localDb: database,
+           ),
+       _recipeRepository =
+           recipeRepository ?? RecipeRepository(ApiClient(), localDb: database);
 
   bool _isLoading = false;
   String? _errorMessage;

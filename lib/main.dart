@@ -7,6 +7,11 @@ import 'package:foodmatch_app/viewmodels/recipe_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/signup_viewmodel.dart.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'data/local/app_database.dart';
+import 'data/api_client.dart';
+import 'data/services/sync_service.dart';
+import 'data/services/connectivity_service.dart';
+import 'widgets/app_initializer.dart';
 import 'core/theme.dart';
 import 'core/app_routes.dart';
 import 'viewmodels/theme_viewmodel.dart';
@@ -39,6 +44,11 @@ bool isTokenExpired(String token) {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicializar BD local (v4 - tablas con nombres correctos)
+  final database = await $FloorAppDatabase
+      .databaseBuilder('foodmatch_app.db')
+      .build();
+
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('auth_token');
 
@@ -66,10 +76,53 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        // Base de datos
+        Provider<AppDatabase>(create: (_) => database),
+        
+        // API Client
+        Provider<ApiClient>(create: (_) => ApiClient()),
+        
+        // Sync Service
+        ProxyProvider<ApiClient, SyncService>(
+          create: (context) => SyncService(
+            context.read<ApiClient>(),
+            localDb: database,
+          ),
+          update: (context, apiClient, previous) => SyncService(
+            apiClient,
+            localDb: database,
+          ),
+        ),
+        
+        // Connectivity Service con auto-sync
+        ProxyProvider<SyncService, ConnectivityService>(
+          create: (context) {
+            final service = ConnectivityService(
+              syncService: context.read<SyncService>(),
+            );
+            service.init();
+            return service;
+          },
+          update: (context, syncService, previous) {
+            return previous ?? ConnectivityService(
+              syncService: syncService,
+            );
+          },
+        ),
+        
+        // Theme
         ChangeNotifierProvider(create: (_) => ThemeViewModel(initialThemeMode)),
-        ChangeNotifierProvider(create: (_) => RecipeViewModel()),
-        ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
-        ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),
+        
+        // ViewModels
+        ChangeNotifierProvider(
+          create: (context) => RecipeViewModel(database: context.read<AppDatabase>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => FavoritesViewModel(database: context.read<AppDatabase>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => RecipeDetailViewModel(database: context.read<AppDatabase>()),
+        ),
         ChangeNotifierProvider(create: (_) => SignupViewModel()),
         ChangeNotifierProvider(create: (_) => AddRecipeViewModel()),
         ChangeNotifierProvider(create: (_) => ProfileViewModel()),
@@ -88,15 +141,17 @@ class FoodMatchApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeViewModel = Provider.of<ThemeViewModel>(context);
 
-    return MaterialApp(
-      title: 'FoodMatch',
-      debugShowCheckedModeBanner: false,
-      navigatorKey: navigatorKey, 
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: themeViewModel.themeMode,
-      initialRoute: initialRoute,
-      routes: AppRoutes.routes,
+    return AppInitializer(
+      child: MaterialApp(
+        title: 'FoodMatch',
+        debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey, 
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: themeViewModel.themeMode,
+        initialRoute: initialRoute,
+        routes: AppRoutes.routes,
+      ),
     );
   }
 }

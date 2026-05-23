@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:foodmatch_app/data/local/app_database.dart';
 import '../models/recipe.dart';
 import '../data/recipe_repository.dart';
 import '../data/api_client.dart';
@@ -6,8 +7,11 @@ import '../data/api_client.dart';
 class RecipeDetailViewModel extends ChangeNotifier {
   final RecipeRepository _repository;
 
-  RecipeDetailViewModel({RecipeRepository? repository})
-    : _repository = repository ?? RecipeRepository(ApiClient());
+  RecipeDetailViewModel({
+    RecipeRepository? repository,
+    AppDatabase? database,
+  }) : _repository =
+           repository ?? RecipeRepository(ApiClient(), localDb: database);
 
   bool _isLoading = false;
   String? _errorMessage;

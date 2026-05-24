@@ -73,6 +73,7 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                   onPressed: () async {
                     Navigator.pop(dialogContext);
                     final recipeVM = context.read<RecipeViewModel>();
+                    final favoritesVM = context.read<FavoritesViewModel>();
 
                     final success = await recipeVM.deleteRecipe(recipe.id);
 
@@ -88,6 +89,10 @@ class _MyRecipesScreenState extends State<MyRecipesScreen> {
                         backgroundColor: success ? Colors.green : Colors.red,
                       ),
                     );
+
+                    if (success) {
+                      await favoritesVM.fetchFavorites();
+                    }
                   },
                   child: const Text('Eliminar'),
                 ),

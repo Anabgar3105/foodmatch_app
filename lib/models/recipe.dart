@@ -42,19 +42,16 @@ class RecipeCardDto {
 class IngredientDto {
   final String name;
   final String quantity;
-  final String unit;
 
   IngredientDto({
     required this.name,
     required this.quantity,
-    required this.unit,
   });
 
   factory IngredientDto.fromJson(Map<String, dynamic> json) {
     return IngredientDto(
       name: json['name'] ?? '',
       quantity: (json['quantity']?.toString()) ?? '',
-      unit: json['unit'] ?? '',
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:foodmatch_app/viewmodels/add_recipe_viewmodel.dart';
 import 'package:foodmatch_app/viewmodels/profile_viewmodel.dart';
@@ -11,18 +12,45 @@ import 'core/app_routes.dart';
 import 'viewmodels/theme_viewmodel.dart';
 import 'viewmodels/favorites_viewmodel.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+bool isTokenExpired(String token) {
+  try {
+    final parts = token.split('.');
+    if (parts.length != 3) return true; 
+    
+    final payload = parts[1];
+    final normalized = base64Url.normalize(payload);
+    final resp = utf8.decode(base64Url.decode(normalized));
+    final payloadMap = json.decode(resp);
+    
+    if (payloadMap is! Map<String, dynamic>) return true;
+    
+    final exp = payloadMap['exp'];
+    if (exp == null) return true;
+    
+    final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+    return DateTime.now().isAfter(expirationDate);
+  } catch (e) {
+    return true; 
+  }
+}
+
 Future<void> main() async {
-  // Asegurar la comunicación nativa antes de inicializar SharedPreferences
   WidgetsFlutterBinding.ensureInitialized();
 
-  //Comprobamos si existe un token guardado en el almacenamiento local
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('auth_token');
 
-  // Configuramos pantalla inicial según la existencia del token
-  final String initialRoute = (token != null && token.isNotEmpty)
-      ? AppRoutes.main
-      : AppRoutes.login;
+  String initialRoute = AppRoutes.login;
+  
+  if (token != null && token.isNotEmpty) {
+    if (!isTokenExpired(token)) {
+      initialRoute = AppRoutes.main; 
+    } else {
+      await prefs.clear(); 
+    }
+  }
 
   final String? savedTheme = prefs.getString('theme_preference');
   ThemeMode initialThemeMode;
@@ -34,6 +62,7 @@ Future<void> main() async {
   } else {
     initialThemeMode = ThemeMode.system; 
   }
+
   runApp(
     MultiProvider(
       providers: [
@@ -57,12 +86,12 @@ class FoodMatchApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos los cambios del tema
     final themeViewModel = Provider.of<ThemeViewModel>(context);
 
     return MaterialApp(
       title: 'FoodMatch',
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey, 
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeViewModel.themeMode,

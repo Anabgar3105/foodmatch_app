@@ -322,7 +322,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              trailing: Text('${ing.quantity} ${ing.unit}'),
+                              trailing: Text(ing.quantity),
                             );
                           },
                         ),

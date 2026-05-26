@@ -115,6 +115,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                   );
                                 }
 
+                                if(!context.mounted) return;
                                 // Actualizar la receta en el viewmodel
                                 context
                                     .read<RecipeDetailViewModel>()
@@ -152,6 +153,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                 final success = await recipeVm.toggleFavorite(
                                   widget.recipeId,
                                 );
+                                if (!context.mounted) return;
                                 if (success) {
                                   context
                                       .read<FavoritesViewModel>()
@@ -227,7 +229,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         '${recipe.preparationTime} min',
                                         Theme.of(
                                           context,
-                                        ).primaryColor.withOpacity(0.1),
+                                        ).primaryColor.withValues(alpha:0.1),
                                       ),
                                       const SizedBox(width: 8),
                                       _buildInfoChip(
@@ -235,7 +237,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                                         recipe.formatedCategory,
                                         Theme.of(
                                           context,
-                                        ).primaryColor.withOpacity(0.1),
+                                        ).primaryColor.withValues(alpha:0.1),
                                       ),
                                     ],
                                   ),
@@ -254,13 +256,13 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                             errorWidget: (context, url, error) => Container(
                               color: Theme.of(
                                 context,
-                              ).primaryColor.withOpacity(0.1),
+                              ).primaryColor.withValues(alpha:0.1),
                               child: const Icon(Icons.broken_image, size: 50),
                             ),
                             placeholder: (context, url) => Container(
                               color: Theme.of(
                                 context,
-                              ).primaryColor.withOpacity(0.1),
+                              ).primaryColor.withValues(alpha:0.1),
                             ),
                           ),
                           const DecoratedBox(
@@ -379,7 +381,7 @@ Widget _buildInfoChip(IconData icon, String label, Color? color) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
-      color: color ?? Color(0xFFFF7A59).withOpacity(0.1),
+      color: color ?? Color(0xFFFF7A59).withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Row(

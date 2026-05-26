@@ -167,11 +167,14 @@ class FakeRecipeRepository extends RecipeRepository {
 /// Fake ApiClient para testing
 /// Devuelve datos simulados sin hacer llamadas HTTP reales
 class FakeApiClient extends ApiClient {
+
+  @override
   Future<Map<String, dynamic>> getJsonObject(Uri url) async {
     await Future.delayed(const Duration(milliseconds: 100));
     return {'success': true};
   }
 
+  @override
   Future<List<dynamic>> getJsonList(Uri url) async {
     await Future.delayed(const Duration(milliseconds: 100));
     return [];

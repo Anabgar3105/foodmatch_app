@@ -32,7 +32,28 @@ bool isTokenExpired(String token) {
     final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     return DateTime.now().isAfter(expirationDate);
   } catch (e) {
-    return true; 
+    // Si ocurre cualquier error al decodificar el token, hacemos un segundpo intento 
+     try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true; 
+      
+      final payload = parts[1];
+      final normalized = base64Url.normalize(payload);
+      final decodedBytes = base64Url.decode(normalized);
+      final resp = utf8.decode(decodedBytes);
+      final payloadMap = json.decode(resp);
+      
+      if (payloadMap is! Map<String, dynamic>) return true;
+      
+      final exp = payloadMap['exp'];
+      if (exp == null) return true;
+      
+      final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
+      return DateTime.now().isAfter(expirationDate);
+      
+    } catch (e) {
+      return true;
+    }
   }
 }
 

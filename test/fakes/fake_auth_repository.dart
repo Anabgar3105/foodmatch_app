@@ -85,6 +85,7 @@ class FakeAuthRepository extends AuthRepository {
 }
 
 class FakeApiClientAuth extends ApiClient {
+  @override
   Future<Map<String, dynamic>> postJsonObject(
     Uri url,
     Map<String, dynamic> body,
@@ -93,6 +94,7 @@ class FakeApiClientAuth extends ApiClient {
     return {'success': true};
   }
 
+  @override
   Future<void> postVoid(Uri url, {Map<String, dynamic>? body}) async {
     await Future.delayed(const Duration(milliseconds: 100));
   }

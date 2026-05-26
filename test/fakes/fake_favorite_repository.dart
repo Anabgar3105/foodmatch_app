@@ -28,8 +28,6 @@ class FakeFavoriteRepository extends FavoriteRepository {
     ),
   };
 
-  
-
   @override
   Future<void> addFavorite(int recipeId) async {
     if (shouldFail) {
@@ -46,7 +44,6 @@ class FakeFavoriteRepository extends FavoriteRepository {
 
   @override
   Future<List<RecipeCardDto>> getFavorites() async {
-
     if (shouldFail) {
       throw Exception('Failed to fetch favorites');
     }
@@ -90,20 +87,22 @@ class FakeFavoriteRepository extends FavoriteRepository {
 }
 
 class FakeApiClientFavorite extends ApiClient {
+  @override
   Future<void> postVoid(Uri url, {Map<String, dynamic>? body}) async {
     await Future.delayed(const Duration(milliseconds: 100));
   }
 
+  @override
   Future<List<dynamic>> getJsonList(Uri url) async {
     await Future.delayed(const Duration(milliseconds: 100));
     return [];
   }
 
+  @override
   Future<void> delete(Uri url) async {
     await Future.delayed(const Duration(milliseconds: 100));
   }
 }
-
 
 // Fake FavoriteRepository para testing
 // class FakeFavoriteRepository extends FavoriteRepository {

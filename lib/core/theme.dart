@@ -14,7 +14,7 @@ class AppTheme {
       scaffoldBackgroundColor: backgroundColor,
       colorScheme: ColorScheme.light(
         primary: primaryColor,
-        secondary: primaryColor.withOpacity(0.8),
+        secondary: primaryColor.withValues(alpha: 0.8),
         surface: backgroundColor,
       ),
       // Estilo global para la tipografía
@@ -63,8 +63,7 @@ class AppTheme {
       scaffoldBackgroundColor: const Color.fromARGB(255, 39, 39, 39), 
       colorScheme: ColorScheme.dark(
         primary: primaryColor,
-        secondary: primaryColor.withOpacity(0.8),
-        background: const Color(0xFF121212),
+        secondary: primaryColor.withValues(alpha: 0.8),
         surface: const Color.fromARGB(255, 74, 74, 74), 
       ),
       textTheme: const TextTheme(

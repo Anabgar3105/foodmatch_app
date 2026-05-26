@@ -27,7 +27,7 @@ class ApiClient {
     return headers;
   }
 
-  void _handleForbidden() async {
+  void _handleSessionExpired() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token'); 
 
@@ -44,6 +44,7 @@ class ApiClient {
     }
   }
 
+  bool _isUnauthorized(int statusCode) => statusCode == 401;
   bool _isForbidden(int statusCode) => statusCode == 403;
 
   Future<Map<String, dynamic>> postJsonObject(Uri url, Map<String, dynamic> body) async {
@@ -51,11 +52,19 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.post(url, headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
       }
 
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para realizar esta acción';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
+      }
 
       if (res.statusCode != 200 && res.statusCode != 201) {
         String errorMsg = 'Error HTTP ${res.statusCode}';
@@ -81,9 +90,18 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.post(url, headers: headers, body: body != null ? jsonEncode(body) : null).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para realizar esta acción';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (res.statusCode != 200 && res.statusCode != 201 && res.statusCode != 204) {
@@ -106,9 +124,18 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.get(url, headers: headers).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para acceder a este recurso';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (res.statusCode != 200) throw Exception('GET ${url.path} -> ${res.statusCode}');
@@ -128,9 +155,18 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.delete(url, headers: headers).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para realizar esta acción';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (res.statusCode != 200 && res.statusCode != 204) {
@@ -153,9 +189,18 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.get(url, headers: headers).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para acceder a este recurso';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (res.statusCode != 200) {
@@ -182,9 +227,18 @@ class ApiClient {
       final headers = await _getHeaders();
       final res = await _client.put(url, headers: headers, body: jsonEncode(body)).timeout(const Duration(seconds: 20));
 
-      if (_isForbidden(res.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(res.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(res.statusCode)) {
+        String errorMsg = 'No tienes permisos para editar esta receta';
+        try {
+          final decoded = jsonDecode(res.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (res.statusCode != 200 && res.statusCode != 201) {
@@ -216,9 +270,18 @@ class ApiClient {
       final streamedResponse = await _client.send(request).timeout(const Duration(seconds: 30));
       final response = await http.Response.fromStream(streamedResponse);
 
-      if (_isForbidden(response.statusCode)) {
-        _handleForbidden();
+      if (_isUnauthorized(response.statusCode)) {
+        _handleSessionExpired();
         throw Exception('Sesión caducada');
+      }
+
+      if (_isForbidden(response.statusCode)) {
+        String errorMsg = 'No tienes permisos para subir imágenes';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded['message'] != null) errorMsg = decoded['message'];
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
 
       if (response.statusCode != 200 && response.statusCode != 201) {

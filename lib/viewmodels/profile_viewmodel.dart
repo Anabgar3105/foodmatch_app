@@ -1,3 +1,11 @@
+/// ViewModel for managing user profile information.
+///
+/// Handles loading and updating user profile data including
+/// avatar image, username, email, and full name.
+/// Persists profile information locally.
+///
+/// Extends [ChangeNotifier] for reactive state management with Provider.
+library;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/api_client.dart';
@@ -5,21 +13,45 @@ import '../models/user.dart';
 import '../models/app_error.dart';
 import '../core/error_handler.dart';
 
+/// ViewModel for user profile management.
 class ProfileViewModel extends ChangeNotifier {
+  /// Current username
   String _username = 'Cargando...';
+
+  /// Current email
   String _email = '';
+
+  /// Current full name
   String _fullName = '';
+
+  /// Current avatar URL
   String? _avatarUrl;
 
+  /// Whether profile is currently being loaded/updated
   bool _isLoading = false;
+
+  /// Current error, if any
   AppError? _error;
 
+  /// Current username
   String get username => _username;
+
+  /// Current email
   String get email => _email;
+
+  /// Current full name
   String get fullName => _fullName;
+
+  /// Whether data is currently loading
   bool get isLoading => _isLoading;
+
+  /// Current error, if any
   AppError? get error => _error;
+
+  /// User-friendly error message
   String? get errorMessage => _error?.userMessage;
+
+  /// Optimized avatar URL with Cloudinary transformations
   String? get avatarUrl {
     if (_avatarUrl == null || _avatarUrl!.isEmpty) return null;
 
@@ -38,6 +70,9 @@ class ProfileViewModel extends ChangeNotifier {
   final ApiClient _apiClient = ApiClient();
   final String baseUrl = 'http://10.0.2.2:8080/api';
 
+  /// Loads profile information from local storage.
+  ///
+  /// Retrieves user data previously saved during login or profile update.
   Future<void> loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
     _username = prefs.getString('auth_username') ?? 'Chef FoodMatch';
@@ -48,6 +83,18 @@ class ProfileViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates user profile with new information.
+  ///
+  /// Uploads new avatar image if provided, then sends profile update to backend.
+  /// Updates local storage and authentication token.
+  ///
+  /// Parameters:
+  ///   - [newUsername]: Updated username
+  ///   - [newEmail]: Updated email address
+  ///   - [localImagePath]: New avatar image file path (optional)
+  ///   - [removeAvatar]: If true, removes the current avatar
+  ///
+  /// Returns: true if update succeeded, false otherwise
   Future<bool> updateUserProfile(
     String newUsername,
     String newEmail,
@@ -129,7 +176,6 @@ class ProfileViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return true;
-      
     } catch (e) {
       _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;

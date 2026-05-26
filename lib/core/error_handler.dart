@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:foodmatch_app/models/app_error.dart';
 
 /// Manejador centralizado de errores para la aplicación.
-/// 
+///
 /// Este servicio convierte errores técnicos en mensajes amigables
 /// para el usuario final. Mapea códigos de error del backend a
 /// mensajes descriptivos y acciones sugeridas.
@@ -10,21 +10,28 @@ class ErrorHandler {
   /// Mapeo de códigos de error del backend a mensajes amigables
   static const Map<String, String> _errorMessages = {
     // Errores de validación
-    'INVALID_INPUT': 'Los datos proporcionados no son válidos. Revisa e intenta de nuevo.',
-    'MISSING_FIELD': 'Falta completar algunos campos. Verifica que todo esté lleno.',
-    'INVALID_EMAIL': 'El correo electrónico no parece ser válido. Verifica el formato.',
-    'WEAK_PASSWORD': 'La contraseña no es lo suficientemente segura. Debe tener al menos 8 caracteres, una mayúscula y un número.',
+    'INVALID_INPUT':
+        'Los datos proporcionados no son válidos. Revisa e intenta de nuevo.',
+    'MISSING_FIELD':
+        'Falta completar algunos campos. Verifica que todo esté lleno.',
+    'INVALID_EMAIL':
+        'El correo electrónico no parece ser válido. Verifica el formato.',
+    'WEAK_PASSWORD':
+        'La contraseña no es lo suficientemente segura. Debe tener al menos 8 caracteres, una mayúscula y un número.',
 
     // Errores de autenticación
-    'INVALID_CREDENTIALS': 'Usuario o contraseña incorrectos. Intenta nuevamente.',
-    'TOKEN_EXPIRED': 'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.',
+    'INVALID_CREDENTIALS':
+        'Usuario o contraseña incorrectos. Intenta nuevamente.',
+    'TOKEN_EXPIRED':
+        'Tu sesión ha expirado. Por favor, inicia sesión de nuevo.',
     'TOKEN_INVALID': 'Hay un problema con tu sesión. Inicia sesión de nuevo.',
 
     // Errores de autorización
     'INSUFFICIENT_PERMISSIONS': 'No tienes permiso para realizar esta acción.',
 
     // Errores de recursos
-    'RESOURCE_NOT_FOUND': 'El recurso que buscas no existe o ha sido eliminado.',
+    'RESOURCE_NOT_FOUND':
+        'El recurso que buscas no existe o ha sido eliminado.',
     'USER_NOT_FOUND': 'El usuario no existe.',
     'RECIPE_NOT_FOUND': 'La receta que buscas no existe o ha sido eliminada.',
 
@@ -34,13 +41,17 @@ class ErrorHandler {
     'RESOURCE_ALREADY_EXISTS': 'Este recurso ya existe.',
 
     // Errores de imagen
-    'IMAGE_UPLOAD_FAILED': 'Hubo un problema al subir la imagen. Intenta de nuevo.',
-    'INVALID_IMAGE_FORMAT': 'El formato de la imagen no es válido. Usa JPG o PNG.',
+    'IMAGE_UPLOAD_FAILED':
+        'Hubo un problema al subir la imagen. Intenta de nuevo.',
+    'INVALID_IMAGE_FORMAT':
+        'El formato de la imagen no es válido. Usa JPG o PNG.',
     'IMAGE_TOO_LARGE': 'La imagen es demasiado grande. Elige una más pequeña.',
 
     // Errores del servidor
-    'INTERNAL_SERVER_ERROR': 'Algo salió mal en nuestros servidores. Intenta más tarde.',
-    'EXTERNAL_SERVICE_ERROR': 'Hay problemas para conectar con un servicio. Intenta más tarde.',
+    'INTERNAL_SERVER_ERROR':
+        'Algo salió mal en nuestros servidores. Intenta más tarde.',
+    'EXTERNAL_SERVICE_ERROR':
+        'Hay problemas para conectar con un servicio. Intenta más tarde.',
   };
 
   static const Map<int, String> _httpErrorMessages = {
@@ -53,6 +64,15 @@ class ErrorHandler {
     503: 'El servidor está en mantenimiento. Intenta de nuevo en unos minutos.',
   };
 
+  /// Converts generic errors to user-friendly [AppError].
+  ///
+  /// Detects error type (network, timeout, JSON parsing, etc.)
+  /// and provides appropriate user message and flags.
+  ///
+  /// Parameters:
+  ///   - [error]: The error to handle
+  ///
+  /// Returns: [AppError] with user-friendly message
   static AppError handle(dynamic error) {
     debugPrint('ErrorHandler - Error capturado: $error');
 
@@ -60,7 +80,8 @@ class ErrorHandler {
         error.toString().contains('Network is unreachable') ||
         error.toString().contains('Failed host lookup')) {
       return AppError(
-        userMessage: 'No hay conexión a internet. Verifica tu conexión y intenta de nuevo.',
+        userMessage:
+            'No hay conexión a internet. Verifica tu conexión y intenta de nuevo.',
         technicalMessage: error.toString(),
         isNetworkError: true,
       );
@@ -78,7 +99,8 @@ class ErrorHandler {
     if (error.toString().contains('FormatException') ||
         error.toString().contains('JSON')) {
       return AppError(
-        userMessage: 'Hubo un problema al procesar los datos. Intenta de nuevo.',
+        userMessage:
+            'Hubo un problema al procesar los datos. Intenta de nuevo.',
         technicalMessage: error.toString(),
       );
     }
@@ -93,22 +115,38 @@ class ErrorHandler {
     );
   }
 
+  /// Handles API errors from HTTP responses.
+  ///
+  /// Maps backend error codes to user-friendly messages.
+  /// Automatically detects error type (auth, image, etc.).
+  ///
+  /// Parameters:
+  ///   - [code]: Backend error code
+  ///   - [message]: Backend error message
+  ///   - [statusCode]: HTTP status code
+  ///   - [technicalMessage]: Technical error details for debugging
+  ///
+  /// Returns: [AppError] with appropriate categorization
   static AppError handleApiError({
     required String? code,
     required String? message,
     required int? statusCode,
     String? technicalMessage,
   }) {
-    debugPrint('ErrorHandler - API Error: code=$code, status=$statusCode, message=$message');
+    debugPrint(
+      'ErrorHandler - API Error: code=$code, status=$statusCode, message=$message',
+    );
 
     bool isImageError = code?.contains('IMAGE') ?? false;
 
-    bool isAuthError = code == 'TOKEN_EXPIRED' ||
+    bool isAuthError =
+        code == 'TOKEN_EXPIRED' ||
         code == 'TOKEN_INVALID' ||
         code == 'INVALID_CREDENTIALS' ||
         statusCode == 401;
 
-    String userMessage = _errorMessages[code] ??
+    String userMessage =
+        _errorMessages[code] ??
         _httpErrorMessages[statusCode] ??
         message ??
         'Algo salió mal. Intenta de nuevo.';
@@ -123,12 +161,22 @@ class ErrorHandler {
     );
   }
 
+  /// Handles image picker library errors.
+  ///
+  /// Provides user-friendly messages for permission denials
+  /// and cancellations.
+  ///
+  /// Parameters:
+  ///   - [error]: The error from image picker
+  ///
+  /// Returns: [AppError] with image error flag
   static AppError handleImagePickerError(dynamic error) {
     debugPrint('ErrorHandler - Image Picker Error: $error');
 
     if (error.toString().contains('Permission')) {
       return AppError(
-        userMessage: 'Necesitamos permiso para acceder a tus fotos. Actívalo en configuración.',
+        userMessage:
+            'Necesitamos permiso para acceder a tus fotos. Actívalo en configuración.',
         technicalMessage: error.toString(),
         isImageError: true,
       );
@@ -149,6 +197,14 @@ class ErrorHandler {
     );
   }
 
+  /// Handles image upload errors from backend.
+  ///
+  /// Detects file size and format issues.
+  ///
+  /// Parameters:
+  ///   - [error]: The error from image upload
+  ///
+  /// Returns: [AppError] with image error flag
   static AppError handleImageUploadError(dynamic error) {
     debugPrint('ErrorHandler - Image Upload Error: $error');
 
@@ -175,6 +231,14 @@ class ErrorHandler {
     );
   }
 
+  /// Returns an emoji representing the error type.
+  ///
+  /// Used in error dialogs and snackbars for visual indication.
+  ///
+  /// Parameters:
+  ///   - [error]: The [AppError] to get emoji for
+  ///
+  /// Returns: An emoji string (📡, ⏱️, 🔐, 🖼️, or ⚠️)
   static String getErrorEmoji(AppError error) {
     if (error.isNetworkError) return '📡';
     if (error.isTimeoutError) return '⏱️';
@@ -183,6 +247,15 @@ class ErrorHandler {
     return '⚠️';
   }
 
+  /// Determines if an error is retryable.
+  ///
+  /// Network and timeout errors are typically retryable.
+  /// Auth and server errors usually are not.
+  ///
+  /// Parameters:
+  ///   - [error]: The [AppError] to check
+  ///
+  /// Returns: true if the operation should be retried
   static bool shouldRetry(AppError error) {
     return error.isNetworkError || error.isTimeoutError;
   }

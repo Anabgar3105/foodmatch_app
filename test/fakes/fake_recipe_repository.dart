@@ -1,13 +1,29 @@
+/// Fake recipe repository for unit testing.
+///
+/// Provides mock recipe data without making real API calls.
+/// Contains pre-defined recipes with details for testing.
+/// Simulates network delays and allows tests to control success/failure.
+///
+/// Usage:
+/// ```dart
+/// final fakeRepo = FakeRecipeRepository();
+/// final recipes = await fakeRepo.searchRecipes();
+/// expect(recipes.length, 4);
+/// ```
+library;
 import 'package:foodmatch_app/data/api_client.dart';
 import 'package:foodmatch_app/data/recipe_repository.dart';
 import 'package:foodmatch_app/models/recipe.dart';
 
-/// Fake Repository para testing con datos simulados
-/// Simula las respuestas sin hacer llamadas reales a la API
+/// Fake repository for testing recipe operations.
 class FakeRecipeRepository extends RecipeRepository {
+  /// Creates a fake recipe repository with mock API client.
   FakeRecipeRepository() : super(FakeApiClient());
 
+  /// Controls whether operations should fail
   bool shouldFail = false;
+
+  /// Error message to throw when shouldFail is true
   String? errorMsg;
 
   // Datos simulados
@@ -99,8 +115,7 @@ class FakeRecipeRepository extends RecipeRepository {
 
   @override
   Future<RecipeDetailDto> getRecipeDetail(int id) async {
-
-     if (shouldFail) {
+    if (shouldFail) {
       throw Exception(errorMsg ?? 'Failed to create recipe');
     }
     // Simular delay de red
@@ -167,7 +182,6 @@ class FakeRecipeRepository extends RecipeRepository {
 /// Fake ApiClient para testing
 /// Devuelve datos simulados sin hacer llamadas HTTP reales
 class FakeApiClient extends ApiClient {
-
   @override
   Future<Map<String, dynamic>> getJsonObject(Uri url) async {
     await Future.delayed(const Duration(milliseconds: 100));

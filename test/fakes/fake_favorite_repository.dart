@@ -1,14 +1,31 @@
+/// Fake favorite repository for unit testing.
+///
+/// Provides mock favorite functionality without making real API calls.
+/// Maintains mock favorite list and allows tests to control success/failure.
+/// Simulates network delays.
+///
+/// Usage:
+/// ```dart
+/// final fakeRepo = FakeFavoriteRepository();
+/// await fakeRepo.addFavorite(1);
+/// final favorites = await fakeRepo.getFavorites();
+/// expect(favorites.length, greaterThan(0));
+/// ```
+library;
 import 'package:foodmatch_app/data/api_client.dart';
 import 'package:foodmatch_app/data/favorite_repository.dart';
 import 'package:foodmatch_app/models/recipe.dart';
 
-/// Fake Repository para Favorites testing
+/// Fake repository for testing favorite operations.
 class FakeFavoriteRepository extends FavoriteRepository {
+  /// Creates a fake favorite repository with mock API client.
   FakeFavoriteRepository() : super(FakeApiClientFavorite());
 
-  // Datos simulados - Set de IDs de favoritos
-  static final Set<int> _favoritedIds = {1, 2};
+  /// Controls whether operations should fail
   bool shouldFail = false;
+
+  static final Set<int> _favoritedIds = {1, 2};
+
 
   // Mock recipes para devolver
   static final Map<int, RecipeCardDto> _mockFavorites = {

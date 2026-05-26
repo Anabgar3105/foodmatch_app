@@ -76,7 +76,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       activeThumbColor: Theme.of(context).primaryColor,
                       secondary: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Colors.purple.withValues(alpha: 0.1), shape: BoxShape.circle),
                         child: const Icon(Icons.dark_mode_outlined, color: Colors.purple),
                       ),
                       title: const Text('Modo Oscuro', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -93,7 +93,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       activeThumbColor: Theme.of(context).primaryColor,
                       secondary: Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.green.withOpacity(0.1), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.1), shape: BoxShape.circle),
                         child: const Icon(Icons.notifications_active_outlined, color: Colors.green),
                       ),
                       title: const Text('Notificaciones Push', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -122,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: ListTile(
                   leading: Container(
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), shape: BoxShape.circle),
+                    decoration: BoxDecoration(color: Colors.blue.withValues(alpha: 0.1), shape: BoxShape.circle),
                     child: const Icon(Icons.info_outline, color: Colors.blue),
                   ),
                   title: const Text('Versión de FoodMatch', style: TextStyle(fontWeight: FontWeight.w600)),

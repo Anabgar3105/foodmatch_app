@@ -280,10 +280,10 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
               child: Container(
                 height: 220,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Theme.of(context).primaryColor.withOpacity(0.5),
+                    color: Theme.of(context).primaryColor.withValues(alpha: 0.5),
                     width: 2,
                   ),
                 ),
@@ -302,7 +302,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           placeholder: (context, url) => Container(
                             color: Theme.of(
                               context,
-                            ).primaryColor.withOpacity(0.1),
+                            ).primaryColor.withValues(alpha: 0.1),
                             child: const Center(
                               child: CircularProgressIndicator(),
                             ),
@@ -310,7 +310,7 @@ class _AddRecipeScreenState extends State<AddRecipeScreen> {
                           errorWidget: (context, url, error) => Container(
                             color: Theme.of(
                               context,
-                            ).primaryColor.withOpacity(0.1),
+                            ).primaryColor.withValues(alpha: 0.1),
                             child: const Icon(Icons.broken_image, size: 50),
                           ),
                         ),

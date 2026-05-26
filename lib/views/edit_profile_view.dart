@@ -189,8 +189,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                         validator: (v) {
                           if (v!.isEmpty) return 'Requerido';
-                          if (v != newPwdCtrl.text)
+                          if (v != newPwdCtrl.text) {
                             return 'Las contraseñas no coinciden';
+                          }
                           return null;
                         },
                       ),

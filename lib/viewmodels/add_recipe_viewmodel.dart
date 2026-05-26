@@ -1,22 +1,61 @@
+/// ViewModel for creating and managing recipe creation/editing.
+///
+/// Handles recipe creation with image upload and recipe updates.
+/// Manages loading state and errors during recipe operations.
+///
+/// Extends [ChangeNotifier] for reactive state management with Provider.
+library;
 import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/recipe_repository.dart';
 import '../models/recipe.dart';
+import '../models/app_error.dart';
+import '../core/error_handler.dart';
 
+/// ViewModel for recipe creation and editing.
 class AddRecipeViewModel extends ChangeNotifier {
   final RecipeRepository _repository;
 
+  /// Creates an [AddRecipeViewModel] instance.
+  ///
+  /// Optionally accepts custom repository instance for testing.
   AddRecipeViewModel({RecipeRepository? repository})
     : _repository = repository ?? RecipeRepository(ApiClient());
 
+  /// Whether recipe is currently being saved
   bool _isLoading = false;
-  String? _errorMessage;
+
+  /// Current error, if any
+  AppError? _error;
+
+  /// The recipe being edited (if applicable)
   RecipeDetailDto? _recipe;
 
+  /// Whether data is currently loading
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+
+  /// Current error, if any
+  AppError? get error => _error;
+
+  /// User-friendly error message
+  String? get errorMessage => _error?.userMessage;
+
+  /// Recipe being edited
   RecipeDetailDto? get recipe => _recipe;
-  
+
+  /// Saves a new recipe to the backend.
+  ///
+  /// Uploads the image first, then creates the recipe in the database.
+  ///
+  /// Parameters:
+  ///   - [title]: Recipe title
+  ///   - [time]: Preparation time in minutes
+  ///   - [category]: Recipe category
+  ///   - [imagePath]: Local file path to the recipe image
+  ///   - [ingredients]: List of ingredients with names and quantities
+  ///   - [steps]: List of preparation step instructions
+  ///
+  /// Returns: true if save succeeded, false otherwise
   Future<bool> saveRecipe({
     required String title,
     required int time,
@@ -26,7 +65,7 @@ class AddRecipeViewModel extends ChangeNotifier {
     required List<String> steps,
   }) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -50,13 +89,29 @@ class AddRecipeViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
+  /// Updates an existing recipe.
+  ///
+  /// Handles image upload if a new image is provided,
+  /// then sends the update to the backend.
+  ///
+  /// Parameters:
+  ///   - [recipeId]: The recipe ID to update
+  ///   - [title]: Updated recipe title
+  ///   - [preparationTime]: Updated preparation time in minutes
+  ///   - [category]: Updated recipe category
+  ///   - [localImagePath]: New image file path (optional)
+  ///   - [existingImageUrl]: Current image URL (used if no new image)
+  ///   - [ingredients]: Updated list of ingredients
+  ///   - [steps]: Updated list of preparation steps
+  ///
+  /// Returns: true if update succeeded, false otherwise
   Future<bool> updateRecipe({
     required int recipeId,
     required String title,
@@ -68,7 +123,7 @@ class AddRecipeViewModel extends ChangeNotifier {
     required List<String> steps,
   }) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -95,11 +150,10 @@ class AddRecipeViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 }
-

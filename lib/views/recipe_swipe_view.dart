@@ -52,9 +52,10 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
 
     if (viewModel.recipes.isNotEmpty) {
       final firstImageUrl = _getOptimizedUrl(viewModel.recipes.first.image);
+      if(!mounted) return;
       await precacheImage(CachedNetworkImageProvider(firstImageUrl), context);
 
-      if (viewModel.recipes.length > 1) {
+      if (mounted && viewModel.recipes.length > 1) {
         precacheImage(
           CachedNetworkImageProvider(
             _getOptimizedUrl(viewModel.recipes[1].image),
@@ -62,7 +63,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
           context,
         );
       }
-      if (viewModel.recipes.length > 2) {
+      if (mounted && viewModel.recipes.length > 2) {
         precacheImage(
           CachedNetworkImageProvider(
             _getOptimizedUrl(viewModel.recipes[2].image),
@@ -235,7 +236,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -250,7 +251,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
               imageUrl: _getOptimizedUrl(recipe.image),
               fit: BoxFit.contain,
               errorWidget: (context, url, error) => Container(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                 child: const Icon(Icons.broken_image, size: 50),
               ),
             ),
@@ -382,8 +383,8 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
         heroTag: null,
         onPressed: onPressed,
         backgroundColor: Theme.of(context).cardColor,
-        splashColor: color.withOpacity(0.2),
-        hoverColor: color.withOpacity(0.2),
+        splashColor: color.withValues(alpha: 0.2),
+        hoverColor: color.withValues(alpha: 0.2),
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
         child: Icon(icon, color: color, size: 30),

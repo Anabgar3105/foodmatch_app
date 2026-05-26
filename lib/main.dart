@@ -32,7 +32,7 @@ bool isTokenExpired(String token) {
     final expirationDate = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
     return DateTime.now().isAfter(expirationDate);
   } catch (e) {
-    // Si ocurre cualquier error al decodificar el token, hacemos un segundpo intento 
+    // Si ocurre cualquier error al decodificar el token, hacemos un segundo intento 
      try {
       final parts = token.split('.');
       if (parts.length != 3) return true; 

@@ -1,25 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
+import '../models/app_error.dart';
 import '../data/auth_repository.dart';
 import '../data/api_client.dart';
+import '../core/error_handler.dart';
 
 class LoginViewModel extends ChangeNotifier {
   final AuthRepository _repository = AuthRepository(ApiClient());
 
   bool _isLoading = false;
-  String? _errorMessage;
+  AppError? _error;
 
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  AppError? get error => _error;
+  String? get errorMessage => _error?.userMessage;
 
   Future<bool> login(String username, String password) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
-      // Bprramos el token anterior antes de iniciar sesión para evitar conflictos
+      // Borramos el token anterior antes de iniciar sesión para evitar conflictos
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('auth_token');
 
@@ -42,7 +45,7 @@ class LoginViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;

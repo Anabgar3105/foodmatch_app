@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../main.dart';
 import '../core/app_routes.dart';
+import '../core/error_handler.dart';
+import '../models/app_error.dart';
 
 class ApiClient {
   final http.Client _client;
@@ -27,6 +29,29 @@ class ApiClient {
     return headers;
   }
 
+  /// Procesa una respuesta de error del API y lanza AppError
+  void _throwApiError(http.Response response) {
+    try {
+      final decoded = jsonDecode(response.body);
+      final code = decoded['code'] as String?;
+      final message = decoded['message'] as String?;
+      
+      throw ErrorHandler.handleApiError(
+        code: code,
+        message: message,
+        statusCode: response.statusCode,
+        technicalMessage: decoded['error'],
+      );
+    } catch (e) {
+      if (e is AppError) rethrow;
+      throw ErrorHandler.handleApiError(
+        code: response.statusCode.toString(),
+        statusCode: response.statusCode,
+        message: 'Error ${response.statusCode}',
+      );
+    }
+  }
+
   void _handleSessionExpired() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
@@ -35,7 +60,7 @@ class ApiClient {
     if (context != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Sesión caducada. Por favor, inicia sesión de nuevo.'),
+          content: Text('Tu sesión ha expirado. Por favor, inicia sesión de nuevo.'),
           backgroundColor: Color(0xFFFF7A59),
           duration: Duration(seconds: 4),
         ),
@@ -61,48 +86,38 @@ class ApiClient {
           .post(url, headers: headers, body: jsonEncode(body))
           .timeout(const Duration(seconds: 20));
 
-      if (_isUnauthorized(res.statusCode)) {
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null &&
-              decoded['message'].toString().toLowerCase().contains('sesión')) {
-            _handleSessionExpired();
-            throw Exception('Sesión caducada');
-          }
-        } catch (e) {
-          throw Exception(e.toString());
+      if (_isUnauthorized(res.statusCode) ) {
+        try{
+            final decoded = jsonDecode(res.body);
+            if(decoded['message'].contains('sesión')) {
+              _handleSessionExpired();
+            }
+          } catch (e) {
+            _throwApiError(res);
         }
+
+     
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para realizar esta acción';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       if (res.statusCode != 200 && res.statusCode != 201) {
-        String errorMsg = 'Error HTTP ${res.statusCode}';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       final decoded = jsonDecode(res.body);
       if (decoded is! Map<String, dynamic>) {
-        throw Exception('Se esperaba objeto JSON');
+        throw ErrorHandler.handle('Se esperaba objeto JSON');
       }
       return decoded;
     } on TimeoutException {
-      throw Exception(
-        '¡Ups! Hay problemas de conexión con el servidor. Inténtalo de nuevo más tarde.',
-      );
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -119,32 +134,24 @@ class ApiClient {
 
       if (_isUnauthorized(res.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(res);
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para realizar esta acción';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       if (res.statusCode != 200 &&
           res.statusCode != 201 &&
           res.statusCode != 204) {
-        String errorMsg = 'Error HTTP ${res.statusCode}';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
     } on TimeoutException {
-      throw Exception('Tiempo de espera agotado');
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -157,28 +164,28 @@ class ApiClient {
 
       if (_isUnauthorized(res.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(res);
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para acceder a este recurso';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
-      if (res.statusCode != 200)
-        throw Exception('GET ${url.path} -> ${res.statusCode}');
+      if (res.statusCode != 200) {
+        _throwApiError(res);
+      }
 
       final decoded = jsonDecode(res.body);
-      if (decoded is! List) throw Exception('Se esperaba lista JSON');
+      if (decoded is! List) {
+        throw ErrorHandler.handle('Se esperaba lista JSON');
+      }
       return decoded;
     } on TimeoutException {
-      throw Exception('Tiempo de espera agotado');
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -191,30 +198,22 @@ class ApiClient {
 
       if (_isUnauthorized(res.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(res);
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para realizar esta acción';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       if (res.statusCode != 200 && res.statusCode != 204) {
-        String errorMsg = 'Error HTTP ${res.statusCode}';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
     } on TimeoutException {
-      throw Exception('Tiempo de espera agotado');
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -227,35 +226,28 @@ class ApiClient {
 
       if (_isUnauthorized(res.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(res);
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para acceder a este recurso';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       if (res.statusCode != 200) {
-        String errorMsg = 'Error HTTP ${res.statusCode}';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       final decoded = jsonDecode(res.body);
-      if (decoded is! Map<String, dynamic>)
-        throw Exception('Se esperaba objeto JSON');
+      if (decoded is! Map<String, dynamic>) {
+        throw ErrorHandler.handle('Se esperaba objeto JSON');
+      }
       return decoded;
     } on TimeoutException {
-      throw Exception('Tiempo de espera agotado');
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -271,37 +263,28 @@ class ApiClient {
 
       if (_isUnauthorized(res.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(res);
       }
 
       if (_isForbidden(res.statusCode)) {
-        String errorMsg = 'No tienes permisos para editar esta receta';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       if (res.statusCode != 200 && res.statusCode != 201) {
-        String errorMsg = 'Error HTTP ${res.statusCode}';
-        try {
-          final decoded = jsonDecode(res.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(res);
       }
 
       final decoded = jsonDecode(res.body);
-      if (decoded is! Map<String, dynamic>)
-        throw Exception('Se esperaba objeto JSON');
+      if (decoded is! Map<String, dynamic>) {
+        throw ErrorHandler.handle('Se esperaba objeto JSON');
+      }
       return decoded;
     } on TimeoutException {
-      throw Exception(
-        '¡Ups! Hay problemas de conexión con el servidor. Inténtalo de nuevo más tarde.',
-      );
+      throw ErrorHandler.handle('TimeoutException: La conexión tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      throw ErrorHandler.handle(e);
     }
   }
 
@@ -319,26 +302,25 @@ class ApiClient {
 
       if (_isUnauthorized(response.statusCode)) {
         _handleSessionExpired();
-        throw Exception('Sesión caducada');
+        _throwApiError(response);
       }
 
       if (_isForbidden(response.statusCode)) {
-        String errorMsg = 'No tienes permisos para subir imágenes';
-        try {
-          final decoded = jsonDecode(response.body);
-          if (decoded['message'] != null) errorMsg = decoded['message'];
-        } catch (_) {}
-        throw Exception(errorMsg);
+        _throwApiError(response);
       }
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        throw Exception('Error al subir la imagen: ${response.statusCode}');
+        _throwApiError(response);
       }
 
       final decoded = jsonDecode(response.body);
       return decoded['url'];
+    } on TimeoutException {
+      throw ErrorHandler.handleImageUploadError('TimeoutException: Subida de imagen tardó demasiado');
+    } on AppError {
+      rethrow;
     } catch (e) {
-      throw Exception('Fallo al subir imagen: $e');
+      throw ErrorHandler.handleImageUploadError(e);
     }
   }
 }

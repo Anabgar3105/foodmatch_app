@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../data/api_client.dart';
 import '../data/recipe_repository.dart';
 import '../models/recipe.dart';
+import '../models/app_error.dart';
+import '../core/error_handler.dart';
 
 class AddRecipeViewModel extends ChangeNotifier {
   final RecipeRepository _repository;
@@ -10,11 +12,12 @@ class AddRecipeViewModel extends ChangeNotifier {
     : _repository = repository ?? RecipeRepository(ApiClient());
 
   bool _isLoading = false;
-  String? _errorMessage;
+  AppError? _error;
   RecipeDetailDto? _recipe;
 
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  AppError? get error => _error;
+  String? get errorMessage => _error?.userMessage;
   RecipeDetailDto? get recipe => _recipe;
   
   Future<bool> saveRecipe({
@@ -26,7 +29,7 @@ class AddRecipeViewModel extends ChangeNotifier {
     required List<String> steps,
   }) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -50,7 +53,7 @@ class AddRecipeViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -68,7 +71,7 @@ class AddRecipeViewModel extends ChangeNotifier {
     required List<String> steps,
   }) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -95,7 +98,7 @@ class AddRecipeViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;

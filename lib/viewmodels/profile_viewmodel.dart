@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../data/api_client.dart';
 import '../models/user.dart';
+import '../models/app_error.dart';
+import '../core/error_handler.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   String _username = 'Cargando...';
@@ -10,13 +12,14 @@ class ProfileViewModel extends ChangeNotifier {
   String? _avatarUrl;
 
   bool _isLoading = false;
-  String? _errorMessage;
+  AppError? _error;
 
   String get username => _username;
   String get email => _email;
   String get fullName => _fullName;
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  AppError? get error => _error;
+  String? get errorMessage => _error?.userMessage;
   String? get avatarUrl {
     if (_avatarUrl == null || _avatarUrl!.isEmpty) return null;
 
@@ -52,7 +55,7 @@ class ProfileViewModel extends ChangeNotifier {
     bool removeAvatar = false,
   }) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -100,7 +103,7 @@ class ProfileViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;
@@ -112,7 +115,7 @@ class ProfileViewModel extends ChangeNotifier {
     String newPassword,
   ) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -128,7 +131,7 @@ class ProfileViewModel extends ChangeNotifier {
       return true;
       
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
       return false;

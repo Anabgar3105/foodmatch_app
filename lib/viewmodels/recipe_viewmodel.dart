@@ -3,6 +3,8 @@ import 'package:foodmatch_app/data/api_client.dart';
 import 'package:foodmatch_app/data/recipe_repository.dart';
 import '../models/recipe.dart';
 import '../data/favorite_repository.dart';
+import '../models/app_error.dart';
+import '../core/error_handler.dart';
 
 class RecipeViewModel extends ChangeNotifier {
   final RecipeRepository _repository;
@@ -16,13 +18,14 @@ class RecipeViewModel extends ChangeNotifier {
            favoriteRepository ?? FavoriteRepository(ApiClient());
 
   bool _isLoading = false;
-  String? _errorMessage;
+  AppError? _error;
   List<RecipeCardDto> _recipes = [];
   final Set<int> _favoritedIds = {};
   List<RecipeCardDto> _myRecipes = [];
 
   bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  AppError? get error => _error;
+  String? get errorMessage => _error?.userMessage;
   List<RecipeCardDto> get recipes => _recipes;
   List<RecipeCardDto> get myRecipes => _myRecipes;
 
@@ -30,7 +33,7 @@ class RecipeViewModel extends ChangeNotifier {
 
   Future<void> fetchRecipes({String? category, int? maxTime}) async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -45,7 +48,7 @@ class RecipeViewModel extends ChangeNotifier {
       _favoritedIds.addAll(userFavorites.map((recipe) => recipe.id));
 
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _recipes = [];
     } finally {
       _isLoading = false;
@@ -97,7 +100,7 @@ class RecipeViewModel extends ChangeNotifier {
   // 1. Obtener mis recetas personales
   Future<void> fetchMyRecipes() async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
@@ -108,7 +111,7 @@ class RecipeViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       _isLoading = false;
       notifyListeners();
     }
@@ -127,7 +130,7 @@ class RecipeViewModel extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _error = e is AppError ? e : ErrorHandler.handle(e);
       notifyListeners();
       return false;
     }

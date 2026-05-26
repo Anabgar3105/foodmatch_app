@@ -37,25 +37,31 @@ void main() {
       expect(viewModel.errorMessage, null);
     });
 
-    test('register fallido debería retornar false y establecer errorMessage', () async {
-      viewModel = SignupViewModel(repository: fakeAuthRepository);
-      fakeAuthRepository.shouldFail = true;
-      fakeAuthRepository.errorMsg = 'Email already exists';
+    test(
+      'register fallido debería retornar false y establecer errorMessage',
+      () async {
+        viewModel = SignupViewModel(repository: fakeAuthRepository);
+        fakeAuthRepository.shouldFail = true;
+        fakeAuthRepository.errorMsg = 'Error de registro';
 
-      final dto = UserRegistrationDto(
-        username: 'existinguser',
-        email: 'existing@test.com',
-        password: 'password123',
-        name: 'Existing',
-        surname1: 'User',
-      );
+        final dto = UserRegistrationDto(
+          username: 'existinguser',
+          email: 'existing@test.com',
+          password: 'password123',
+          name: 'Existing',
+          surname1: 'User',
+        );
 
-      final result = await viewModel.register(dto);
+        final result = await viewModel.register(dto);
 
-      expect(result, false);
-      expect(viewModel.isLoading, false);
-      expect(viewModel.errorMessage, contains('Email already exists'));
-    });
+        expect(result, false);
+        expect(viewModel.isLoading, false);
+        expect(
+          viewModel.errorMessage,
+          contains('Algo salió mal. Intenta de nuevo más tarde.'),
+        );
+      },
+    );
 
     test('register debería notificar listeners', () async {
       viewModel = SignupViewModel(repository: fakeAuthRepository);
@@ -78,44 +84,47 @@ void main() {
       expect(notificationCount, greaterThanOrEqualTo(2));
     });
 
-    test('errorMessage debería limpiarse al realizar un nuevo registro', () async {
-      viewModel = SignupViewModel(repository: fakeAuthRepository);
+    test(
+      'errorMessage debería limpiarse al realizar un nuevo registro',
+      () async {
+        viewModel = SignupViewModel(repository: fakeAuthRepository);
 
-      // Primer intento fallido
-      fakeAuthRepository.shouldFail = true;
-      fakeAuthRepository.errorMsg = 'Error 1';
-      
-      var dto = UserRegistrationDto(
-        username: 'user1',
-        email: 'user1@test.com',
-        password: 'password123',
-        name: 'User',
-        surname1: 'One',
-      );
-      
-      await viewModel.register(dto);
-      expect(viewModel.errorMessage, isNotNull);
+        // Primer intento fallido
+        fakeAuthRepository.shouldFail = true;
+        fakeAuthRepository.errorMsg = 'Error 1';
 
-      // Segundo intento exitoso
-      fakeAuthRepository.shouldFail = false;
-      
-      dto = UserRegistrationDto(
-        username: 'user2',
-        email: 'user2@test.com',
-        password: 'password123',
-        name: 'User',
-        surname1: 'Two',
-      );
-      
-      await viewModel.register(dto);
-      expect(viewModel.errorMessage, null);
-    });
+        var dto = UserRegistrationDto(
+          username: 'user1',
+          email: 'user1@test.com',
+          password: 'password123',
+          name: 'User',
+          surname1: 'One',
+        );
+
+        await viewModel.register(dto);
+        expect(viewModel.errorMessage, isNotNull);
+
+        // Segundo intento exitoso
+        fakeAuthRepository.shouldFail = false;
+
+        dto = UserRegistrationDto(
+          username: 'user2',
+          email: 'user2@test.com',
+          password: 'password123',
+          name: 'User',
+          surname1: 'Two',
+        );
+
+        await viewModel.register(dto);
+        expect(viewModel.errorMessage, null);
+      },
+    );
 
     test('isLoading debería ser true durante el registro', () async {
       viewModel = SignupViewModel(repository: fakeAuthRepository);
-      
+
       bool wasLoadingDuringRegister = false;
-      
+
       viewModel.addListener(() {
         if (viewModel.isLoading) {
           wasLoadingDuringRegister = true;

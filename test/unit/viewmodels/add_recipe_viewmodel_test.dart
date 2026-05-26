@@ -44,7 +44,7 @@ void main() {
         () async {
       viewModel = AddRecipeViewModel(repository: fakeRecipeRepository);
       fakeRecipeRepository.shouldFail = true;
-      fakeRecipeRepository.errorMsg = 'Image upload failed';
+      fakeRecipeRepository.errorMsg = 'Error al subir imagen';
 
       final result = await viewModel.saveRecipe(
         title: 'New Recipe',
@@ -57,7 +57,7 @@ void main() {
 
       expect(result, false);
       expect(viewModel.isLoading, false);
-      expect(viewModel.errorMessage, contains('Image upload failed'));
+      expect(viewModel.errorMessage, contains('Algo salió mal. Intenta de nuevo más tarde.'));
     });
 
     test('saveRecipe debería notificar listeners', () async {
@@ -184,7 +184,7 @@ void main() {
       viewModel = AddRecipeViewModel(repository: fakeRecipeRepository);
 
       fakeRecipeRepository.shouldFail = true;
-      fakeRecipeRepository.errorMsg = 'Request timeout';
+      fakeRecipeRepository.errorMsg = 'Timeout';
 
       final result = await viewModel.saveRecipe(
         title: 'Slow Recipe',
@@ -196,7 +196,7 @@ void main() {
       );
 
       expect(result, false);
-      expect(viewModel.errorMessage, contains('timeout'));
+      expect(viewModel.errorMessage, contains('Algo salió mal. Intenta de nuevo más tarde.'));
     });
   });
 }

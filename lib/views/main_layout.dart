@@ -33,7 +33,6 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // El cuerpo cambia según el índice seleccionado (Gestión de la pila)
       body: IndexedStack(
         index: _selectedIndex,
         children: _screens,

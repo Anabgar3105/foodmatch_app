@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
+import '../viewmodels/theme_viewmodel.dart';
 import '../core/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isObscured = true;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Logo
                     Semantics(
                       label: 'Logotipo de FoodMatch',
-                      child: Image.asset('assets/icon/logo.png', width: 100, height: 100),
+                      child: Image.asset(
+                        'assets/icon/logo.png',
+                        width: 100,
+                        height: 100,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -58,8 +64,23 @@ class _LoginScreenState extends State<LoginScreen> {
                     // Campo Contraseña
                     TextField(
                       controller: _passwordController,
-                      obscureText: true,
-                      decoration: const InputDecoration(hintText: 'Contraseña'),
+                      obscureText: _isObscured,
+                      decoration: InputDecoration(
+                        hintText: 'Contraseña',
+                        labelText: 'Contraseña',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _isObscured
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _isObscured = !_isObscured;
+                            });
+                          },
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -74,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
 
-                    // Botón de Login (o spinner de carga)
+                    // Botón de Login
                     viewModel.isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : Semantics(
@@ -86,13 +107,39 @@ class _LoginScreenState extends State<LoginScreen> {
                                   _usernameController.text,
                                   _passwordController.text,
                                 );
-                                if (success && mounted) {
-                                  Navigator.pushReplacementNamed(context, AppRoutes.main);
+                                if (!context.mounted) return;
+                                if (success) {
+                                  // Reload the theme for the newly logged-in user
+                                  final themeViewModel = context
+                                      .read<ThemeViewModel>();
+                                  await themeViewModel.reloadUserTheme();
+
+                                  if (!context.mounted) return;
+                                  Navigator.pushReplacementNamed(
+                                    context,
+                                    AppRoutes.main,
+                                  );
                                 }
                               },
-                              child: const Text('Login'),
+                              child: const Text(
+                                'Login',
+                                style: TextStyle(fontSize: 15),
+                              ),
                             ),
                           ),
+                    const SizedBox(height: 4),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/signup');
+                      },
+                      child: Text(
+                        '¿No tienes cuenta? Regístrate aquí',
+                        style: TextStyle(
+                          color: Theme.of(context).primaryColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ],
                 );
               },

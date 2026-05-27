@@ -1,8 +1,14 @@
+<div align="center">
+  
 # FoodMatch App 📱
+ 
 ![Flutter](https://img.shields.io/badge/Flutter-3.9.2-blue)
 ![Dart](https://img.shields.io/badge/Dart-3.9.2-blue)
 ![Provider](https://img.shields.io/badge/State%20Management-Provider-orange)
 ![Android](https://img.shields.io/badge/Platform-Android-brightgreen)
+
+</div>
+
 
 > **Aplicación móvil multiplataforma** que revoluciona el descubrimiento de recetas con una interfaz intuitiva tipo "swipe" para navegar por recetas. MVP completamente funcional con autenticación, gestión de favoritos y creación de recetas.
 
@@ -141,96 +147,6 @@ MultiProvider(
   ],
   child: FoodMatchApp(initialRoute: initialRoute),
 )
-```
-
-**⚠️ Nota:** `LoginViewModel` NO es global - se crea localmente en la pantalla de login para mantener aislada la lógica de autenticación.
-
-**ViewModels Implementados:**
-
-1. **LoginViewModel** - Gestión de login (LOCAL, no global)
-   - `login(email, password)` → Valida credenciales, obtiene JWT, lo persiste en SharedPreferences
-   - Propiedades: `isLoading`, `errorMessage`, `isSuccess`
-   - **Almacenamiento:** `auth_token`, `auth_username`, `auth_email`, `auth_full_name`, `auth_avatar`
-   - **Creación:** `ChangeNotifierProvider(create: (_) => LoginViewModel())` en LoginView
-   - **Uso:** El LoginViewModel es local a LoginView - una vez autenticado, navega a home y nunca se usa de nuevo
-
-2. **SignupViewModel** - Registro de usuarios (GLOBAL)
-   - `signup(name, surname, email, username, password)` → Crea usuario, obtiene JWT automáticamente
-   - `getErrorMessage()` → Parsea errores del backend
-   - Propiedades: `isLoading`, `registrationSuccess`
-   - **Uso:** Consumer en SignupView
-
-3. **RecipeViewModel** - Descubrimiento y gestión de recetas (GLOBAL)
-   - `fetchRecipes()` → Obtiene todas las recetas
-   - `searchRecipes(category, maxTime)` → Filtra por categoría y tiempo
-   - `getRecipeDetail(id)` → Detalles completos de una receta
-   - `createRecipe(recipeData)` → Crea receta (multipart con imagen)
-   - `updateRecipe(id, data)` → Edita receta existente
-   - `deleteRecipe(id)` → Elimina receta del usuario
-   - `getUserRecipes()` → Lista solo recetas del usuario autenticado
-   - Propiedades: `recipes`, `currentRecipe`, `userRecipes`, `isLoading`, `errorMessage`
-   - **Uso:** Consumer en RecipeSwiperView, RecipeDetailView, MyRecipesView
-
-4. **FavoritesViewModel** - Gestión de favoritos (GLOBAL)
-   - `getFavorites()` → Obtiene recetas marcadas como favoritas
-   - `addFavorite(recipeId)` → Guarda receta a favoritos (resultado del swipe derecha)
-   - `removeFavorite(recipeId)` → Elimina de favoritos
-   - `isFavorite(recipeId)` → Verifica si una receta está en favoritos
-   - Propiedades: `favorites`, `favoriteIds` (para búsqueda O(1)), `isLoading`
-   - **Uso:** Consumer en RecipeSwiperView (❤️ visual), FavoritesView (listado), RecipeDetailView (botón toggle)
-
-5. **RecipeDetailViewModel** - Detalles y acciones de una receta (GLOBAL)
-   - `loadRecipeDetail(recipeId)` → Carga ingredientes, pasos, detalles
-   - `toggleFavorite(recipeId)` → Alterna favorito (simplifica código en detalles)
-   - Propiedades: `recipe`, `ingredients`, `elaborationSteps`, `isLoading`
-   - **Uso:** Consumer en RecipeDetailView
-
-6. **AddRecipeViewModel** - Creación/edición de recetas (GLOBAL)
-   - `createRecipe(title, description, category, prepTime, ingredients, steps, image)` → Crea con upload de imagen
-   - `updateRecipe(id, ...)` → Edita receta existente
-   - `uploadImage(file)` → Sube imagen a Cloudinary (retorna URL)
-   - Propiedades: `isLoading`, `successMessage`, `errorMessage`, `uploadProgress`
-   - **Uso:** Consumer en AddRecipeView
-
-7. **ProfileViewModel** - Perfil y logout (GLOBAL)
-   - `logout()` → **Limpia TODOS los datos de autenticación de SharedPreferences**
-   - `updateProfile(name, email, avatar)` → Actualiza perfil del usuario
-   - `changePassword(oldPassword, newPassword)` → Cambia contraseña
-   - `getProfile()` → Obtiene datos del usuario actual (desde SharedPreferences)
-   - Propiedades: `userName`, `userEmail`, `userAvatar`, `isLoading`, `updateSuccess`
-   - **Uso:** Consumer en ProfileView, EditProfileView; logout en SettingsView
-
-8. **ThemeViewModel** - Gestión de tema light/dark (GLOBAL)
-   - `toggleTheme()` → Cambia entre light/dark mode
-   - `initTheme()` → Carga preferencia guardada (`theme_preference_$username`)
-   - Propiedades: `isDarkMode`, `themeData`
-   - **Uso:** Listener en main.dart; Consumer en SettingsView
-
-**Gestión Centralizada de Autenticación:**
-
-La autenticación NO se maneja en un único ViewModel, sino que se distribuye:
-- **Login:** LoginViewModel (local) → persiste token en SharedPreferences
-- **Api Client:** Inyecta token automáticamente: `Authorization: Bearer $token`
-- **Logout:** ProfileViewModel (global) → limpia SharedPreferences
-- **Startup:** main.dart valida JWT (verifica `exp` claim); si expira, elimina token y redirige a `/login`
-
-**Tokens y Persistencia (SharedPreferences):**
-- `auth_token` → JWT para autenticación en API
-- `auth_username`, `auth_email`, `auth_full_name`, `auth_avatar` → Datos del usuario
-- `theme_preference_$username` → Tema personalizado del usuario (ej: `theme_preference_juan` → `true|false`)
-
-**Instanciación de Repositorios:**
-Cada ViewModel instancia sus repositorios con un `ApiClient()` fresco que carga automáticamente el token del SharedPreferences:
-```dart
-class RecipeViewModel extends ChangeNotifier {
-  final _repository = RecipeRepository(ApiClient());
-  
-  Future<void> fetchRecipes() async {
-    // ApiClient dentro de RecipeRepository añade token automáticamente
-    final recipes = await _repository.getRecipes();
-    // ...
-  }
-}
 ```
 
 ### Gestión de Datos
@@ -478,7 +394,6 @@ foodmatch_app/
 
 ### Los swipes no funcionan suave
 - Verifica FPS: Settings → Performance
-- Reduce cantidad de recetas en pantalla
 - Actualiza `flutter_card_swiper` a última versión
 
 ### Las imágenes no se ven

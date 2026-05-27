@@ -48,19 +48,19 @@ class HomeScreen extends StatelessWidget {
                           _buildCategoryCard(
                             context,
                             title: 'Entrantes',
-                            icon: Icons.soup_kitchen_outlined,
+                            icon: Icons.tapas_outlined,
                             backendCategory: 'ENTRANTES',
                           ),
                           _buildCategoryCard(
                             context,
                             title: 'Snacks',
-                            icon: Icons.tapas_outlined,
+                            icon: Icons.cookie_outlined,
                             backendCategory: 'SNACKS',
                           ),
                           _buildCategoryCard(
                             context,
                             title: 'Platos Completos',
-                            icon: Icons.restaurant_outlined,
+                            icon: Icons.dinner_dining_outlined,
                             backendCategory: 'PLATOS_COMPLETOS',
                           ),
                           _buildCategoryCard(

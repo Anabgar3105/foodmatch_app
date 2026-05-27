@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/login_viewmodel.dart';
+import '../viewmodels/theme_viewmodel.dart';
 import '../core/app_routes.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -108,6 +109,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
                                 if (!context.mounted) return;
                                 if (success) {
+                                  // Reload the theme for the newly logged-in user
+                                  final themeViewModel = context
+                                      .read<ThemeViewModel>();
+                                  await themeViewModel.reloadUserTheme();
+
+                                  if (!context.mounted) return;
                                   Navigator.pushReplacementNamed(
                                     context,
                                     AppRoutes.main,

@@ -89,6 +89,7 @@ Future<void> main() async {
 
   final prefs = await SharedPreferences.getInstance();
   final String? token = prefs.getString('auth_token');
+  final String? username = prefs.getString('auth_username');
 
   String initialRoute = AppRoutes.login;
 
@@ -100,7 +101,12 @@ Future<void> main() async {
     }
   }
 
-  final String? savedTheme = prefs.getString('theme_preference');
+  // Load user-specific theme preference if logged in, otherwise use general preference
+  final String themeKey = (username != null && username.isNotEmpty)
+      ? 'theme_preference_$username'
+      : 'theme_preference';
+  final String? savedTheme = prefs.getString(themeKey);
+  
   ThemeMode initialThemeMode;
 
   if (savedTheme == 'dark') {
@@ -114,7 +120,9 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ThemeViewModel(initialThemeMode)),
+        ChangeNotifierProvider(
+          create: (_) => ThemeViewModel(initialThemeMode),
+        ),
         ChangeNotifierProvider(create: (_) => RecipeViewModel()),
         ChangeNotifierProvider(create: (_) => FavoritesViewModel()),
         ChangeNotifierProvider(create: (_) => RecipeDetailViewModel()),

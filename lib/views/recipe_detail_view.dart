@@ -301,7 +301,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       ),
                     )
                   : viewModel.errorMessage != null
-                  ? Center(child: Text(viewModel.errorMessage!))
+                  ? Center(child: Padding(padding: const EdgeInsets.all(16.0), child: Text(viewModel.errorMessage!)))
                   : recipe == null
                   ? const SizedBox.shrink()
                   : TabBarView(

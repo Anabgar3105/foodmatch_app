@@ -52,7 +52,7 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
 
     if (viewModel.recipes.isNotEmpty) {
       final firstImageUrl = _getOptimizedUrl(viewModel.recipes.first.image);
-      if(!mounted) return;
+      if (!mounted) return;
       await precacheImage(CachedNetworkImageProvider(firstImageUrl), context);
 
       if (mounted && viewModel.recipes.length > 1) {
@@ -126,14 +126,21 @@ class _RecipeSwipeScreenState extends State<RecipeSwipeScreen> {
                 children: [
                   const Icon(Icons.error_outline, size: 60, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text('Ups! ${viewModel.errorMessage}'),
-                  ElevatedButton(
-                    onPressed: () {
-                      final category =
-                          ModalRoute.of(context)!.settings.arguments as String;
-                      viewModel.fetchRecipes(category: category);
-                    },
-                    child: const Text('Reintentar'),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text('Ups! ${viewModel.errorMessage}'),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        final category =
+                            ModalRoute.of(context)!.settings.arguments
+                                as String;
+                        viewModel.fetchRecipes(category: category);
+                      },
+                      child: const Text('Reintentar'),
+                    ),
                   ),
                 ],
               ),
